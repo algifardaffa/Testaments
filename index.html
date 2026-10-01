@@ -43,46 +43,27 @@
                         <!-- Opsi akan terisi otomatis dari JS -->
                     </datalist>
                 </div>
+                <div class="grid grid-cols-1 gap-4 mt-5">
+                    <div>
+                        <label for="comparePlayer1" class="block text-sm font-medium text-slate-300 mb-2">Compare Player 1</label>
+                        <div class="relative">
+                            <input type="text" id="comparePlayer1" list="playerList"
+                                placeholder="Enter nickname to compare..."
+                                class="w-full bg-slate-900/90 text-slate-100 text-sm rounded-xl px-4 py-3 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder-slate-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="comparePlayer2" class="block text-sm font-medium text-slate-300 mb-2">Compare Player 2</label>
+                        <div class="relative">
+                            <input type="text" id="comparePlayer2" list="playerList"
+                                placeholder="Enter nickname to compare..."
+                                class="w-full bg-slate-900/90 text-slate-100 text-sm rounded-xl px-4 py-3 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder-slate-500">
+                        </div>
+                    </div>
+                </div>
             </div>
 
-<!-- Quick Stats Cards -->
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-    <!-- Lowest Testaments (Merah) -->
-    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-4 border border-slate-700/60 shadow-lg">
-        <p class="text-xs font-medium text-slate-400">Lowest Testaments</p>
-        <div class="flex items-center gap-1.5 mt-1 text-yellow-500">
-            <!-- Panah ke bawah -->
-            <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-            </svg>
-            <p id="statLatestValue" class="text-2xl font-bold text-yellow-500">-</p>
-        </div>
-    </div>
 
-    <!-- Highest Testaments (Hijau) -->
-    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-4 border border-slate-700/60 shadow-lg">
-        <p class="text-xs font-medium text-slate-400">Highest Testaments</p>
-        <div class="flex items-center gap-1.5 mt-1 text-emerald-400">
-            <!-- Panah ke atas -->
-            <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-            </svg>
-            <p id="statHighestValue" class="text-2xl font-bold text-emerald-400">-</p>
-        </div>
-    </div>
-
-    <!-- Total LME (Biru) -->
-    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-4 border border-slate-700/60 shadow-lg">
-        <p class="text-xs font-medium text-slate-400">Total LME</p>
-        <div class="flex items-center gap-1.5 mt-1 text-sky-400">
-            <!-- Pager / Hashtag -->
-            <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
-            </svg>
-            <p id="statDataPoints" class="text-2xl font-bold text-sky-400">-</p>
-        </div>
-    </div>
-</div>
 
             <!-- Main Line Chart Card -->
             <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-6 border border-slate-700/60 shadow-xl">
@@ -96,55 +77,30 @@
                 </div>
             </div>
 
-            <!-- 2 Bubbles di bawah Grafik -->
-<div class="grid grid-cols-1 gap-6">
-
-    <!-- Bubble 1: Highest Increase -->
-    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-5 border border-slate-700/60 shadow-xl flex flex-col justify-between">
+<!-- Comparison Attributes -->
+<div class="mt-6 bg-slate-800/60 backdrop-blur-md rounded-2xl p-5 border border-slate-700/60 shadow-xl overflow-x-auto">
+    <div class="flex items-center justify-between mb-4">
         <div>
-            <div class="flex items-center space-x-2 text-indigo-400 mb-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                <h3 class="font-semibold text-slate-200">Highest Increase</h3>
-            </div>
-        </div>
-        <div>
-            <p id="highestIncreaseVal" class="text-3xl font-extrabold text-indigo-400">+0</p>
-            <p id="highestIncreaseSub" class="text-xs text-slate-500 mt-1">-</p>
+            <h3 class="text-lg font-bold text-white">Player Comparison</h3>
+            <p class="text-xs text-slate-500 mt-1">Comparison with chosen attribute</p>
         </div>
     </div>
-
-    <!-- Bubble 2 Gabungan: Latest Increase & Hot Comment -->
-    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-5 border border-slate-700/60 shadow-xl flex flex-col justify-between space-y-4">
-        <div>
-            <!-- Header & Nilai Latest Increase -->
-            <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center space-x-2 text-emerald-400">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <h3 class="font-semibold text-slate-200">Latest Increase</h3>
-                </div>
-                <p id="jokeTierName" class="text-xs font-bold tracking-wider text-amber-400">[ - ]</p>
-            </div>
-
-            <div class="flex items-baseline justify-between">
-                <p id="latestIncreaseVal" class="text-3xl font-extrabold text-emerald-400">+0</p>
-                <p id="latestIncreaseSub" class="text-xs text-slate-500 mt-1">-</p>
-            </div>
-        </div>
-
-        <!-- Box Komentar / Joke -->
-        <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-700/50">
-            <p id="jokeText" class="text-sm italic text-slate-300">"Pilih player untuk melihat penilaian."</p>
-        </div>
-    </div>
-
+    <table class="w-full min-w-[380px] text-sm">
+        <thead>
+            <tr id="comparisonHeader" class="border-b border-slate-700/70"></tr>
+        </thead>
+        <tbody id="comparisonBody"></tbody>
+    </table>
 </div>
+
+
 
         </div>
     </div>
 
     <script>
         const dates = [
-            "4/1/2025","11/1/2025","18/1/2025","25/1/2025","1/2/2025","8/2/2025","15/2/2025","22/2/2025","1/3/2025","4/3/2025",
+            "14/12/2024","21/12/2024","28/12/2024","4/1/2025","11/1/2025","18/1/2025","25/1/2025","1/2/2025","8/2/2025","15/2/2025","22/2/2025","1/3/2025","4/3/2025",
             "11/3/2025","18/3/2025","25/3/2025","1/4/2025","8/4/2025","15/4/2025","22/4/2025","30/4/2025","6/5/2025","20/5/2025",
             "27/5/2025","3/6/2025","10/6/2025","17/6/2025","24/6/2025","1/7/2025","8/7/2025","15/7/2025","22/7/2025","29/7/2025",
             "5/8/2025","12/8/2025","19/8/2025","26/8/2025","3/9/2025","10/9/2025","17/9/2025","23/9/2025","30/9/2025","7/10/2025",
@@ -155,46 +111,264 @@
             "11/8/2026","18/8/2026","25/8/2026","1/9/2026","8/9/2026","15/9/2026","22/9/2026","29/9/2026"
         ];
 
-        const rawPlayerData = {
-            "" : [1000,810,640,490,360,250,160,90,40,10,40,90,160,250,360,490,640,810,1000],
-            "Tancred": [50,50,50,50,50,50,50,100,98,450,283,285,295,311,317,317,320,322,352,362,362,362,372,378,381,377,385,403,408,416,468,477,516,528,553,588,613,642,696,734,753,758,836,943,949,1083,1331,1356,1402,1586,1673,1680,1740,1915,1973,2081,2073,2100,2100,2100,2100,2100,2100,2348,2425,2450,2463,2491,2508,2544,2548,2558,2611,2658,2776,2826,2873,2882,2902,2937,2980,3081,3171,3192,3205,3238,3278,3409],
-            "xenonex": [38,41,143,157,178,180,202,204,218,235,237,255,271,276,279,290,289,300,302,309,331,342,343,368,407,414,421,429,467,467,501,524,535,534,542,585,595,685,717,748,848,874,998,1104,1511,1507,1575,1591,1610,1690,1763,1836,1926,1960,1997,2014,2058,2188,2210,2224,2229,2270,2293,2332,2447,2443,2442,2451,2502,2504,2570,2573,2592,2651,2735,2785,2860,2888,2896,2903,3005],
-            "RabidWombat42": [279,289,295,299,304,309,342,344,364,367,375,415,419,422,431,437,448,448,469,467,494,499,521,524,582,594,603,630,617,665,777,803,839,887,1261,1313,1382,1347,1516,1526,1526,1549,1603,1770,1794,1810,1857,1886,1980,2002,2011,2002,2135,2150,2272,2300,2327,2312,2362,2392,2450,2472,2545,2557,2594,2626,2668],
-            "Brandorn": [46,46,46,46,47,50,50,57,58,182,164,181,182,197,199,211,213,241,236,262,276,281,281,282,292,309,311,350,343,364,375,377,399,399,416,415,419,425,425,0,540,551,553,559,572,587,594,600,621,642,662,718,772,827,875,880,1277,1392,1462,1543,1588,1640,1693,1782,1822,1885,1888,1926,1941,1940,1980,1996,2089,2097,2138,2190,2202,2214,2335,2326,2492,2498,2562],
-            "Fabs2195": [205,229,248,255,263,265,267,270,275,293,311,317,350,360,366,375,376,401,401,416,415,424,426,434,445,545,554,554,564,567,587,610,551,673,725,771,779,792,940,960,886,1093,1069,1112,1268,1498,1557,1717,1738,1786,1823,1869,1867,1921,1949,2025,2056,2086,2109,2090,2131,2188,2271,2337,2383,2389,2413,2447,2513],
-            "Oddery": [41,40,42,45,45,45,48,48,47,137,158,177,181,182,185,187,192,201,221,228,242,246,255,263,274,259,277,286,304,306,344,348,353,366,371,397,397,415,416,415,421,426,429,535,545,547,554,564,563,604,607,632,689,726,746,929,895,963,978,1000,1073,1199,1338,1444,1359,1537,1551,1592,1824,1919,1885,1931,1940,1951,1976,2024,2035,2040,2037,2167,2239,2237,2237,2286,2341,2409,2445],
-            "NBUNKNOWN": [44,46,47,48,49,49,49,50,49,182,183,187,194,204,212,205,218,219,246,251,262,264,271,283,285,286,288,289,316,342,344,354,364,354,392,392,411,411,411,417,418,511,510,549,549,565,571,577,586,602,749,788,784,804,872,851,848,1239,1256,1447,1597,1607,1654,1732,1800,1842,1883,1885,2005,2029,2054,2035,2106,2122,2111,2167,2168,2207,2273,2277,2305,2386,2399,2410],
-            "DannyLongpalms": [1963,2098,2159,2166,2179,2168,2204,2251,2407],
-            "Curzon08": [570,579,594,590,601,666,676,760,744,903,972,1103,1491,1660,1672,1704,1751,1761,1854,1855,1891,1980,1959,2000,2131,2168,2277,2312,2329,2351,2370],
-            "Grabar69": [176,191,193,220,258,263,266,267,269,271,285,285,300,314,317,344,352,365,373,378,395,395,413,417,418,423,425,423,533,540,540,552,604,598,650,682,770,828,835,871,907,990,1527,1597,1695,1724,1754,1783,1786,1796,1875,1907,1940,1958,1962,2048,2170,2204,2239,2254,2294,2339,2346],
-            "DollarHero": [40,42,132,149,152,163,183,189,194,209,216,222,257,262,261,267,280,280,282,285,302,319,322,340,364,362,380,375,391,391,415,417,424,422,425,438,542,535,540,552,561,580,603,606,653,610,696,735,792,807,851,892,885,919,932,969,1169,1281,1304,1265,1354,1525,1681,1782,1722,1811,1828,1831,1896,1932,2004,2030,2038,2046,2051,2199,2224,2343],
-            "shruggie": [31,47,138,149,165,179,181,190,197,214,212,224,245,259,260,264,281,278,274,285,304,317,322,345,369,374,376,386,386,407,398,416,418,418,443,544,544,547,560,562,562,565,669,676,706,713,742,796,818,869,873,876,883,933,930,1174,1244,1287,1387,1519,1522,1640,1703,1706,1732,1750,1746,1751,1626,1544,1805,1926,2030,2052,2238,2261,2312,2339],
-            "RavenSun": [1854,1985,2023,2090,2210],
-            "Efas": [49,49,50,50,50,50,50,66,66,265,215,221,222,225,234,237,232,241,251,265,272,277,284,286,287,291,306,319,357,371,376,387,404,404,421,424,425,422,424,425,518,537,538,542,559,590,629,681,734,736,868,949,885,968,1006,1112,1097,1237,1473,1485,1402,1652,1697,1675,1753,1684,1789,1824,1906,1906,1984,2000,2108,2152,2199,2207,2198],
-            "medsockerpa": [49,50,50,50,50,50,50,63,62,327,212,212,216,211,221,233,239,242,256,263,272,282,279,284,288,289,293,307,315,318,342,360,364,375,371,388,388,406,416,420,425,425,430,536,552,557,552,554,564,589,579,577,582,608,621,618,647,766,782,811,816,817,1082,1170,1254,1391,1498,1380,1573,1627,1691,1749,1824,1879,1916,1941,1944,2038,2025,2045,2065,2114,2122,2138,2156,2199,2175],
-            "Riah5": [254,275,284,292,292,338,344,342,354,361,371,452,453,460,459,475,478,488,486,496,501,528,546,585,595,597,598,602,604,609,619,641,713,738,823,850,874,896,907,967,1012,1100,1163,1222,1108,1129,1214,1346,1567,1827,1894,1943,1975,2011,2066],
-            "Navacado": [255,266,270,273,274,277,278,277,295,307,312,341,348,361,373,376,391,391,403,405,414,420,424,439,539,536,546,547,552,578,595,598,662,675,672,718,748,699,777,819,817,877,1002,1209,1269,1245,1407,1437,1637,1689,1717,1745,1757,1677,1742,1741,1865,1882,1889,1922,1909,2045],
-            "scubaman": [224,241,256,229,256,255,251,254,266,294,295,308,326,344,355,377,377,391,400,402,402,416,432,499,528,543,528,516,585,568,589,591,531,604,590,611,716,710,801,820,820,773,867,881,908,1114,1188,1167,1021,1316,1268,1392,1267,1516,1434,1529,1567,1712,1680,1802,1745,1728,1768],
-            "Moosanator": [576,577,584,592,599,615,621,736,727,776,764,790,812,856,895,922,932,1094,1185,1080,1158,1011,1402,1370,1430,1546,1760,1735,1764],
-            "Du9799": [30,34,18,22,88,113,117,129,143,171,176,193,197,211,207,216,209,225,247,262,264,271,281,296,307,329,337,333,357,365,394,394,413,409,403,412,428,439,539,354,538,532,569,582,582,594,601,466,669,461,730,902,895,938,919,1076,886,1381,1363,1427,1555,1545,1823,1857,1847,1891,1873,2052,2090,2127,2121,2121,2209,2239,2110,2327,2401,2468,1590],
-            "KosmicSurvivor": [428,444,463,475,511,518,534,551,573,576,612,612,629,726,823,1155,1214,1178,1335,1437,1560,1555],
-            "UnstableFlux": [818,881,1031,1234,1263,1366,1508,1517],
-            "Tesstichol": [542,565,578,578,581,586,591,603,604,615,597,615,933,995,1028,1073,1216,1101,1184],
-            "Player 74010561": [45,44,43,46,46,49,49,54,54,139,164,166,158,166,170,176,200,194,225,220,230,251,243,253,257,270,250,281,301,301,323,348,346,353,449,461,440,480,460,476,484,484,507,512,476,521,540,551,557,556,557,569,572,577,589,590,610,585,598,613,600,618,666,687,799,717,717,717,628,733,680,1006,1116,1039],
-            "TelurBasi": [591,629,686,737,752,810,907,1008],
-            "Fusillier": [589,612,623,688,702,781,903,849],
-            "engji": [563,582,612,621,621,633,693,718,808],
-            "WencesX": [42,45,45,47,43,46,45,53,51,142,154,164,163,167,176,177,187,203,207,213,207,240,245,246,244,243,260,258,259,276,319,319,333,341,341,339,431,426,436,470,475,470,487,496,496,499,500,501,564,567,563,571,578,580,589,592,591,592,600,611,608,621,623,689,690,760],
-            "Player 48888738": [198,226,229,237,233,241,234,241,268,277,272,281,284,284,283,311,311,328,347,356,347,336,357,440,447,449,459,455,475,493,498,504,498,509,510,517,528,526,536,552,583,575,575,596,592,589,598,604,596,606,600,608,604,614,609,623,643,668,713,670,750,717],
-            "AnaLog1": [599,603,626,634,683,678],
-            "CrumpetLord": [500,499,509,501,547],
-            "medi8or": [322,404,413,403,422,418,448,470,460,489,472,486,487,514,493,512,526,533,534],
-            "Palladino": [606,602,581,608,642,651,637,689,754,748,786,775,845,1022,997,1161,1006,1219,1135,1143,1076,1219,1308,1397,1306,1481,1404,1576,1689,1725,1736,1732,1740,1694],
-            "Hasbullhmagovedo": [110,123,126,132,123,140,169,148,149,148,179,200,221,230,152,144,237,237,175,194,175,179,295,297,391,304,289,417,411,460,460,446,407,462,463,484,484,516,510,529,551,532,554,571,572],
-            "Neph5757": [697,649,638,791,804,740,807,745,759,747,679,793,702,856,878,1187],
-            "GamerLad": [192,208,212,233,231,243,242,245,248,246,251,250,262,279,290,290,307,310,305,305,334,337,340,342,341,341,447,450,451,450,453,473,493,498,492,505,500,498,502,487,494,541,529,521,539,539,536,533,542,544,578,600,581,613,621,621,669,712,724],
-            "MikkMokk08": [494,494,490,513,541,491]
-        };
+const rawPlayerData = {
+  "": [
+    1000, 810, 640, 490, 360, 250, 160, 90, 40, 10, 40, 90, 160, 250, 360, 490, 640, 810, 1000
+  ],
+  "Tancred": [
+  78,50,50, 50, 50, 50, 50, 50, 50, 50, 100, 98, 450, 283, 285, 295, 311,
+  317, 317, 320, 322, 352, 362, 362, 362, 372, 378, 381, 377, 385,
+  403, 408, 416, 468, 477, 516, 528, 553, 588, 613, 642, 696, 734,
+  753, 758, 836, 943, 949, 1083, 1331, 1356, 1402, 1586, 1673, 1680,
+  1740, 1915, 1973, 2081, 2073, 2100, 2100, 2100, 2100, 2100, 2100,
+  2348, 2425, 2450, 2463, 2491, 2508, 2544, 2548, 2558, 2611, 2658,
+  2776, 2826, 2873, 2882, 2902, 2937, 2980, 3081, 3171, 3192, 3205,
+  3238, 3278, 3409
+],
+
+"xenonex": [
+  38, 41, 143, 157, 178, 180, 202, 204, 218, 235, 237, 255, 271, 276,
+  279, 290, 289, 300, 302, 309, 331, 342, 343, 368, 407, 414, 421, 429,
+  467, 467, 501, 524, 535, 534, 542, 585, 595, 685, 717, 748, 848, 874,
+  998, 1104, 1511, 1507, 1575, 1591, 1610, 1690, 1763, 1836, 1926, 1960,
+  1997, 2014, 2058, 2188, 2210, 2224, 2229, 2270, 2293, 2332, 2447, 2443,
+  2442, 2451, 2502, 2504, 2570, 2573, 2592, 2651, 2735, 2785, 2860, 2888,
+  2896, 2903, 3005
+],
+
+"RabidWombat42": [
+  279, 289, 295, 299, 304, 309, 342, 344, 364, 367, 375, 415, 419, 422,
+  431, 437, 448, 448, 469, 467, 494, 499, 521, 524, 582, 594, 603, 630,
+  617, 665, 777, 777, 803, 803, 839, 887, 1261, 1313, 1382, 1347, 1516,
+  1526, 1526, 1549, 1603, 1770, 1794, 1810, 1857, 1886, 1980, 2002, 2011,
+  2002, 2135, 2150, 2272, 2300, 2327, 2312, 2362, 2392, 2450, 2472, 2545,
+  2557, 2594, 2626, 2668
+],
+
+"Brandorn": [
+  45, 46, 46, 46, 46, 47, 50, 50, 57, 58, 182, 164, 181, 182, 197, 197, 199,
+  211, 213, 241, 236, 262, 262, 276, 281, 281, 281, 282, 292, 309, 311,
+  350, 343, 364, 375, 377, 399, 399, 416, 415, 419, 425, 425, 425, 540, 551,
+  553, 559, 559, 572, 587, 594, 600, 600, 621, 642, 662, 718, 772, 827,
+  875, 880, 1277, 1392, 1462, 1543, 1588, 1640, 1693, 1782, 1822, 1885,
+  1888, 1926, 1941, 1940, 1980, 1996, 2089, 2097, 2138, 2190, 2202, 2214,
+  2335, 2326, 2492, 2498, 2562
+],
+
+"Fabs2195": [
+  205, 229, 248, 255, 263, 265, 267, 270, 275, 293, 311, 317, 350, 360,
+  366, 375, 376, 401, 401, 416, 415, 424, 426, 434, 445, 545, 554, 554,
+  564, 567, 567, 587, 610, 551, 673, 725, 771, 779, 792, 940, 960, 886,
+  1093, 1069, 1112, 1268, 1498, 1557, 1717, 1738, 1786, 1823, 1869, 1867,
+  1921, 1949, 2025, 2056, 2086, 2109, 2090, 2131, 2188, 2271, 2337, 2383,
+  2389, 2413, 2447, 2513
+],
+
+"Oddery": [
+  39, 41, 40, 42, 45, 45, 45, 48, 48, 47, 137, 158, 177, 181, 182, 185, 187,
+  192, 201, 221, 228, 242, 246, 255, 263, 274, 259, 277, 286, 304, 306,
+  344, 348, 353, 366, 371, 397, 397, 415, 416, 415, 421, 426, 429, 535,
+  545, 547, 554, 564, 564, 563, 604, 607, 632, 689, 726, 746, 929, 895,
+  963, 978, 1000, 1073, 1199, 1338, 1444, 1359, 1537, 1551, 1592, 1824,
+  1919, 1885, 1931, 1940, 1951, 1976, 2024, 2035, 2040, 2037, 2167, 2239,
+  2237, 2237, 2286, 2341, 2409, 2445
+],
+
+"NBUNKNOWN": [
+  31, 44, 43, 44, 46, 47, 48, 49, 49, 49, 50, 49, 182, 183, 187, 194, 204, 212, 205,
+  218, 219, 246, 251, 262, 264, 271, 283, 285, 286, 288, 289, 316, 316,
+  342, 344, 354, 364, 354, 392, 392, 411, 411, 411, 417, 417, 418, 511,
+  510, 510, 549, 549, 549, 565, 571, 577, 586, 602, 749, 788, 784, 804,
+  872, 851, 848, 1239, 1256, 1447, 1597, 1607, 1654, 1732, 1800, 1842,
+  1883, 1885, 2005, 2029, 2054, 2035, 2106, 2122, 2111, 2167, 2168, 2207,
+  2273, 2277, 2305, 2386, 2399, 2410
+],
+
+"DannyLongpalms": [1963, 2098, 2159, 2166, 2179, 2168, 2204, 2251, 2407],
+
+"Curzon08": [
+  570, 579, 594, 590, 601, 666, 676, 760, 744, 903, 972, 1103, 1491,
+  1660, 1672, 1704, 1751, 1761, 1854, 1855, 1891, 1980, 1959, 2000,
+  2131, 2168, 2277, 2312, 2329, 2351, 2370
+],
+
+"Grabar69": [
+  176, 191, 193, 220, 258, 263, 266, 267, 269, 271, 285, 285, 300, 314,
+  317, 344, 352, 365, 373, 378, 395, 395, 413, 417, 418, 423, 425, 423,
+  533, 533, 540, 540, 552, 552, 552, 552, 552, 604, 598, 598, 650, 682,
+  682, 770, 828, 835, 871, 871, 907, 990, 990, 1527, 1597, 1597, 1695,
+  1724, 1754, 1783, 1786, 1796, 1875, 1907, 1940, 1958, 1962, 2048, 2170,
+  2204, 2239, 2254, 2294, 2339, 2346
+],
+
+"DollarHero": [
+  40, 42, 132, 149, 152, 163, 183, 189, 194, 209, 216, 222, 257, 262,
+  261, 267, 280, 280, 282, 285, 302, 319, 322, 340, 364, 362, 380, 375,
+  391, 391, 415, 417, 424, 422, 425, 438, 542, 535, 540, 552, 561, 561,
+  580, 603, 606, 606, 653, 610, 696, 735, 792, 807, 851, 892, 885, 919,
+  932, 969, 969, 1169, 1281, 1304, 1265, 1354, 1525, 1681, 1782, 1722,
+  1811, 1828, 1831, 1896, 1932, 2004, 2030, 2038, 2046, 2051, 2199, 2224,
+  2343
+],
+
+"shruggie": [
+  31, 47, 138, 149, 165, 179, 181, 190, 197, 214, 212, 224, 245, 259,
+  260, 264, 281, 278, 274, 285, 304, 317, 322, 345, 345, 369, 374, 376,
+  386, 386, 407, 398, 416, 418, 418, 443, 544, 544, 547, 560, 562, 562,
+  565, 565, 669, 669, 676, 706, 713, 742, 796, 818, 869, 873, 876, 883,
+  933, 930, 1174, 1244, 1287, 1387, 1519, 1522, 1640, 1703, 1706, 1732,
+  1750, 1746, 1751, 1626, 1544, 1805, 1926, 2030, 2052, 2238, 2261, 2312,
+  2339
+],
+
+"RavenSun": [1854, 1985, 2023, 2090, 2210],
+
+"Efas": [
+  39,47,46 ,49, 49, 50, 50, 50, 50, 50, 66, 66, 265, 215, 221, 222, 225, 234, 237,
+  232, 241, 251, 265, 272, 277, 284, 286, 287, 287, 291, 306, 319, 319,
+  357, 357, 371, 376, 387, 404, 404, 421, 424, 425, 422, 424, 425, 518,
+  537, 538, 542, 559, 559, 590, 590, 629, 629, 681, 681, 734, 736, 736,
+  868, 949, 885, 968, 1006, 1112, 1097, 1097, 1237, 1473, 1485, 1402,
+  1402, 1652, 1697, 1697, 1675, 1753, 1684, 1789, 1824, 1906, 1906, 1984,
+  2000, 2108, 2152, 2199, 2207, 2198
+],
+
+"medsockerpa": [
+  37, 46, 48, 49, 50, 50, 50, 50, 50, 50, 63, 62, 327, 212, 212, 216, 211, 221, 233,
+  239, 242, 256, 263, 272, 282, 279, 284, 288, 289, 293, 307, 315, 318,
+  342, 360, 364, 375, 371, 388, 388, 406, 416, 420, 425, 425, 430, 536,
+  536, 552, 557, 552, 554, 564, 589, 579, 577, 582, 608, 621, 618, 647,
+  766, 782, 811, 816, 817, 1082, 1170, 1254, 1391, 1498, 1380, 1573,
+  1627, 1691, 1749, 1824, 1879, 1916, 1941, 1944, 2038, 2025, 2045, 2065,
+  2114, 2122, 2138, 2156, 2199, 2175
+],
+
+"Riah5": [
+  254, 275, 284, 292, 292, 338, 344, 342, 354, 361, 371, 452, 453, 460,
+  459, 459, 475, 478, 488, 486, 496, 501, 528, 546, 585, 595, 597, 598,
+  602, 604, 609, 619, 641, 713, 738, 823, 850, 874, 896, 907, 967, 1012,
+  1100, 1163, 1222, 1108, 1129, 1214, 1346, 1567, 1827, 1894, 1943, 1975,
+  2011, 2066
+],
+
+"Navacado": [
+  255, 266, 270, 273, 274, 277, 278, 277, 295, 307, 312, 341, 348, 361,
+  373, 376, 391, 391, 403, 405, 414, 420, 424, 439, 539, 536, 546, 547,
+  552, 552, 578, 595, 598, 598, 662, 675, 672, 718, 748, 699, 777, 819,
+  817, 877, 1002, 1209, 1269, 1245, 1407, 1437, 1637, 1689, 1717, 1745,
+  1757, 1677, 1677, 1677, 1742, 1742, 1742, 1742, 1741, 1865, 1882, 1894,
+  1922, 1909, 2045
+],
+
+"scubaman": [
+  224, 241, 256, 229, 256, 255, 251, 254, 266, 294, 295, 308, 308, 326,
+  344, 355, 377, 377, 391, 400, 402, 402, 416, 432, 499, 499, 499, 528,
+  543, 528, 516, 516, 585, 585, 568, 589, 591, 531, 531, 604, 590, 611,
+  716, 710, 801, 820, 820, 773, 867, 881, 908, 1114, 1188, 1167, 1021,
+  1316, 1268, 1392, 1267, 1516, 1434, 1529, 1567, 1712, 1680, 1802, 1745,
+  1728, 1768
+],
+
+"Moosanator": [
+  576, 577, 584, 584, 592, 599, 615, 621, 736, 727, 776, 764, 790, 812,
+  856, 895, 922, 932, 1094, 1185, 1080, 1158, 1011, 1402, 1370, 1430, 1430,
+  1546, 1760, 1735, 1764
+],
+
+"Du9799": [
+  30, 34, 18, 22, 88, 113, 117, 129, 143, 171, 176, 193, 197, 211, 207,
+  216, 209, 225, 247, 262, 264, 271, 281, 296, 307, 329, 337, 333, 357, 365,
+  394, 394, 413, 409, 403, 412, 428, 439, 539, 539, 539, 539, 354, 538, 532,
+  569, 582, 582, 594, 601, 466, 669, 461, 730, 902, 895, 938, 919, 1076,
+  886, 886, 1381, 1363, 1427, 1555, 1545, 1823, 1857, 1847, 1891, 1873, 2052,
+  2090, 2127, 2121, 2121, 2209, 2239, 2110, 2327, 2401, 2468, 1590
+],
+
+"KosmicSurvivor": [
+  428, 444, 463, 475, 511, 518, 534, 551, 573, 576, 612, 612, 629, 726,
+  823, 1155, 1214, 1178, 1335, 1437, 1560, 1555
+],
+
+"UnstableFlux": [818, 881, 1031, 1234, 1263, 1366, 1508, 1517],
+
+"Tesstichol": [
+  542, 565, 578, 578, 581, 586, 586, 591, 603, 604, 615, 597, 615, 933,
+  995, 1028, 1073, 1216, 1101, 1184
+],
+
+"Player 74010561": [
+  33, 42, 42, 45, 44, 43, 46, 46, 49, 49, 54, 54, 139, 164, 166, 158, 166, 170, 176,
+  200, 194, 225, 220, 230, 251, 243, 253, 253, 253, 257, 270, 270, 250, 281,
+  281, 281, 301, 301, 301, 301, 323, 348, 348, 346, 346, 353, 353, 449, 461,
+  440, 480, 460, 476, 484, 484, 484, 507, 512, 476, 521, 540, 551, 551, 551,
+  557, 556, 557, 569, 569, 572, 577, 589, 590, 610, 585, 598, 613, 600, 618,
+  666, 687, 799, 717, 717, 717, 628, 733, 680, 1006, 1116, 1039
+],
+
+"TelurBasi": [591, 629, 686, 737, 752, 810, 907, 1008],
+
+"Fusillier": [589, 612, 623, 688, 702, 781, 903, 849],
+
+"engji": [563, 582, 612, 621, 621, 633, 693, 718, 808],
+
+"WencesX": [
+  23, 46, 45, 42, 45, 45, 47, 43, 46, 45, 53, 51, 142, 154, 164, 163, 167, 176, 177,
+  187, 187, 203, 207, 213, 207, 240, 245, 246, 244, 243, 260, 258, 259, 276,
+  276, 276, 276, 319, 319, 319, 333, 333, 333, 341, 341, 339, 339, 339, 339,
+  431, 426, 426, 436, 436, 436, 436, 470, 475, 470, 487, 487, 496, 496, 499,
+  500, 501, 501, 564, 567, 563, 571, 578, 580, 580, 589, 592, 592, 592, 591,
+  592, 600, 611, 608, 621, 621, 623, 689, 689, 689, 690, 760
+],
+
+"Player 48888738": [
+  198, 226, 229, 237, 233, 241, 234, 241, 268, 277, 272, 281, 281, 284,
+  284, 283, 311, 311, 328, 347, 356, 347, 336, 357, 440, 447, 449, 459,
+  455, 455, 475, 475, 493, 493, 498, 504, 498, 509, 509, 510, 517, 528, 526,
+  536, 536, 552, 583, 575, 575, 596, 592, 589, 598, 604, 596, 606, 600, 608,
+  604, 614, 609, 623, 643, 668, 668, 713, 670, 750, 717
+],
+
+"AnaLog1": [599, 603, 603, 626, 634, 683, 678],
+
+"CrumpetLord": [500, 499, 509, 501, 547],
+
+"medi8or": [
+  322, 404, 413, 403, 422, 418, 448, 470, 470, 460, 460, 489, 472, 486,
+  487, 514, 493, 493, 493, 493, 512, 512, 526, 533, 534
+],
+
+"Palladino": [
+  606, 602, 581, 608, 642, 651, 637, 689, 754, 748, 786, 775, 775, 845,
+  845, 1022, 997, 1161, 1006, 1219, 1135, 1143, 1076, 1219, 1308, 1397,
+  1306, 1481, 1404, 1576, 1689, 1725, 1736, 1732, 1740, 1694, 1694
+],
+
+"Hasbullhmagovedo": [
+  110, 123, 126, 132, 123, 140, 169, 148, 149, 148, 179, 200, 200, 221,
+  230, 152, 144, 144, 237, 237, 175, 194, 175, 179, 295, 297, 391, 304, 289,
+  289, 417, 417, 411, 411, 411, 411, 411, 411, 460, 460, 446, 407, 407, 462,
+  462, 463, 484, 484, 484, 484, 484, 484, 484, 484, 484, 516, 510, 510, 510,
+  510, 510, 510, 510, 510, 529, 551, 532, 554, 571, 572, 572
+],
+
+"Neph5757": [
+  697, 649, 638, 791, 804, 740, 807, 745, 759, 747, 679, 793, 702, 856,
+  878, 878, 1187, 1187, 1187, 1187, 1187
+],
+
+"GamerLad": [
+  192, 208, 212, 233, 231, 243, 242, 245, 248, 246, 251, 250, 262, 279,
+  279, 290, 290, 290, 307, 310, 305, 305, 334, 337, 340, 342, 341, 341, 447,
+  450, 451, 450, 450, 450, 453, 453, 473, 473, 493, 498, 492, 505, 500, 498,
+  502, 487, 494, 541, 529, 521, 521, 521, 521, 539, 539, 539, 536, 533, 533,
+  533, 542, 544, 578, 600, 581, 613, 621, 621, 669, 712, 724, 724, 724
+],
+
+"MikkMokk08": [
+  494, 494, 490, 513, 541, 541, 541, 541, 541, 491, 491, 491, 491, 491,
+  491, 491, 491, 491
+]
+};
 
         const playerNames = Object.keys(rawPlayerData);
         let selectedPlayer = playerNames[0];
@@ -206,6 +380,8 @@
         const statHighestValue = document.getElementById('statHighestValue');
         const statDataPoints = document.getElementById('statDataPoints');
         const chartTitle = document.getElementById('chartTitle');
+        const comparePlayer1 = document.getElementById('comparePlayer1');
+        const comparePlayer2 = document.getElementById('comparePlayer2');
 
         // Element Bubble Tambahan
         const highestIncreaseVal = document.getElementById('highestIncreaseVal');
@@ -249,77 +425,219 @@
             }
         }
 
+        function getPlayerSeries(playerName) {
+            const data = rawPlayerData[playerName] || [];
+            const startIndex = Math.max(0, dates.length - data.length);
+            return {
+                data,
+                startIndex,
+                dates: dates.slice(startIndex)
+            };
+        }
+
+        function populateCompareSelects() {
+            // Comparison sekarang memakai search bar seperti Nickname.
+            // Datalist playerList sudah berisi seluruh nama player.
+            comparePlayer1.value = '';
+            comparePlayer2.value = '';
+        }
+
+        function getSelectedComparisonPlayers() {
+            const values = [comparePlayer1.value.trim(), comparePlayer2.value.trim()];
+            return values
+                .map(value => playerNames.find(name => name.toLowerCase() === value.toLowerCase()) || '')
+                .filter(Boolean)
+                .filter((name, index, arr) => arr.indexOf(name) === index && name !== selectedPlayer);
+        }
+
+        function parseDateDMY(dateString) {
+            const [day, month, year] = dateString.split('/').map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        function formatDuration(startDateString, endDateString) {
+            const start = parseDateDMY(startDateString);
+            const end = parseDateDMY(endDateString);
+            const days = Math.max(0, Math.round((end - start) / (1000 * 60 * 60 * 24)));
+            const months = Math.floor(days / 30.44);
+            const remainingDays = Math.round(days - months * 30.44);
+            if (months === 0) return `${days} d.`;
+            return remainingDays > 0 ? `${months} mo. ${remainingDays} d.` : `${months} mo.`;
+        }
+
+        function getComparisonMetrics(playerName) {
+            const data = rawPlayerData[playerName] || [];
+            const series = getPlayerSeries(playerName);
+
+            if (data.length === 0) {
+                return {
+                    name: playerName,
+                    latest: null,
+                    peak: null,
+                    avgGrowth: null,
+                    bigIncrease: null,
+                    bigDrop: null,
+                    lastIncrease: null,
+                    joinDuration: "-",
+                    totalLme: 0
+                };
+            }
+
+            const changes = [];
+            for (let i = 1; i < data.length; i++) {
+                changes.push(data[i] - data[i - 1]);
+            }
+
+            const positiveChanges = changes.filter(x => x > 0);
+            const avgGrowth = changes.length > 0
+                ? changes.reduce((sum, x) => sum + x, 0) / changes.length
+                : null;
+
+            return {
+                name: playerName,
+                latest: data[data.length - 1],
+                peak: Math.max(...data),
+                avgGrowth: avgGrowth,
+                bigIncrease: positiveChanges.length > 0 ? Math.max(...positiveChanges) : 0,
+                bigDrop: changes.length > 0 ? Math.min(...changes) : 0,
+                lastIncrease: changes.length > 0 ? changes[changes.length - 1] : null,
+                joinDuration: series.dates.length > 0
+                    ? formatDuration(series.dates[0], series.dates[series.dates.length - 1])
+                    : "-",
+                totalLme: data.length
+            };
+        }
+
+        function updateComparisonTable(playerNames) {
+            const header = document.getElementById('comparisonHeader');
+            const body = document.getElementById('comparisonBody');
+            if (!header || !body) return;
+
+            const uniquePlayers = [...new Set(playerNames)].filter(name => name && rawPlayerData[name]);
+            const metrics = uniquePlayers.map(getComparisonMetrics);
+
+            // Rank asli satu klan berdasarkan damage terakhir seluruh player,
+            // bukan rank relatif hanya dari 3 player yang sedang dibandingkan.
+            const clanRanking = Object.keys(rawPlayerData)
+                .filter(name => name !== '' && rawPlayerData[name] && rawPlayerData[name].length > 0)
+                .map(name => ({
+                    name,
+                    latest: rawPlayerData[name][rawPlayerData[name].length - 1]
+                }))
+                .sort((a, b) => b.latest - a.latest);
+
+            const rankMap = new Map();
+            let previousDamage = null;
+            let currentRank = 0;
+
+            clanRanking.forEach((player, index) => {
+                if (player.latest !== previousDamage) {
+                    currentRank = index + 1;
+                    previousDamage = player.latest;
+                }
+                rankMap.set(player.name, currentRank);
+            });
+
+            header.innerHTML = `
+                <th class="text-left py-3 px-3 text-slate-400 font-semibold">Attribute</th>
+                ${metrics.map((p, i) => `
+                    <th class="text-center py-3 px-3 font-bold ${['text-indigo-400','text-emerald-400','text-amber-400'][i] || 'text-slate-200'}">
+                        ${p.name}
+                    </th>
+                `).join('')}
+            `;
+
+            const rows = [
+                { label: 'Rank', key: 'rank', format: v => v ? `#${v}` : '-' },
+                { label: 'Peak', key: 'peak', format: v => v == null ? '-' : v.toLocaleString() },
+                { label: 'Average Growth', key: 'avgGrowth', format: v => v == null ? '-' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}` },
+                { label: 'Big Increase', key: 'bigIncrease', format: v => v == null ? '-' : `+${v.toLocaleString()}` },
+                { label: 'Big Drop', key: 'bigDrop', format: v => v == null ? '-' : `${v >= 0 ? '+' : ''}${v.toLocaleString()}` },
+                { label: 'Last Increase', key: 'lastIncrease', format: v => v == null ? '-' : `${v >= 0 ? '+' : ''}${v.toLocaleString()}` },
+                { label: 'Join Duration', key: 'joinDuration', format: v => v },
+                { label: 'Total LME', key: 'totalLme', format: v => v.toLocaleString() }
+            ];
+
+            body.innerHTML = rows.map((row, rowIndex) => `
+                <tr class="${rowIndex % 2 === 0 ? 'bg-slate-900/20' : ''} border-b border-slate-800/70 last:border-0">
+                    <td class="py-3 px-3 text-slate-300 font-medium">${row.label}</td>
+                    ${metrics.map(p => {
+                        const value = row.key === 'rank' ? rankMap.get(p.name) : p[row.key];
+                        const formatted = row.format(value);
+                        let cls = 'text-slate-200';
+                        if (row.key === 'avgGrowth' || row.key === 'bigIncrease' || row.key === 'lastIncrease') cls = value >= 0 ? 'text-emerald-400' : 'text-red-400';
+                        if (row.key === 'bigDrop') cls = value < 0 ? 'text-red-400' : 'text-slate-200';
+                        if (row.key === 'rank') cls = value === 1 ? 'text-yellow-400 font-bold' : 'text-slate-200';
+                        return `<td class="py-3 px-3 text-center font-semibold ${cls}">${formatted}</td>`;
+                    }).join('')}
+                </tr>
+            `).join('');
+        }
+
         function updateStatsAndChart() {
             const dataArr = rawPlayerData[selectedPlayer] || [];
-            const playerDates = dates.slice(-dataArr.length);
+            const primarySeries = getPlayerSeries(selectedPlayer);
+            const playerDates = primarySeries.dates;
 
-            // 1. Update Quick Stats Utama
-            if (dataArr.length > 0) {
-                const lowest = Math.min(...dataArr);
-                const highest = Math.max(...dataArr);
-                statLatestValue.textContent = lowest.toLocaleString();
-                statHighestValue.textContent = highest.toLocaleString();
-                statDataPoints.textContent = dataArr.length;
-            } else {
-                statLatestValue.textContent = "-";
-                statHighestValue.textContent = "-";
-                statDataPoints.textContent = "0";
-            }
 
-            // 2. Kalkulasi Data untuk 3 Bubble
-            if (dataArr.length > 1) {
-                // A. Highest Increase
-                let maxDiff = -Infinity;
-                let maxDiffIdx = -1;
 
-                for (let i = 1; i < dataArr.length; i++) {
-                    let diff = dataArr[i] - dataArr[i-1];
-                    if (diff > maxDiff) {
-                        maxDiff = diff;
-                        maxDiffIdx = i;
+            // 3. Tentukan player pembanding dan rentang tanggal grafik
+            const comparisonPlayers = getSelectedComparisonPlayers();
+            const allPlayers = [selectedPlayer, ...comparisonPlayers];
+            updateComparisonTable(allPlayers);
+            const seriesInfo = allPlayers.map(getPlayerSeries);
+            const earliestStart = Math.min(...seriesInfo.map(series => series.startIndex));
+            const chartDates = dates.slice(earliestStart);
+
+            // 4. Buat dataset dengan null sebelum player mulai muncul.
+            const datasets = seriesInfo.map((series, index) => {
+                const name = allPlayers[index];
+                // Selalu buat array sepanjang chartDates. Nilai sebelum player bergabung
+                // dibuat null agar garis baru muncul tepat pada tanggal join.
+                const values = Array(chartDates.length).fill(null);
+                series.data.forEach((value, i) => {
+                    const chartIndex = (series.startIndex - earliestStart) + i;
+                    if (chartIndex >= 0 && chartIndex < values.length) {
+                        values[chartIndex] = value;
                     }
-                }
+                });
+                const styles = [
+                    {
+                        borderColor: '#818cf8',
+                        backgroundColor: 'rgba(129, 140, 248, 0.15)'
+                    },
+                    {
+                        borderColor: '#34d399',
+                        backgroundColor: 'rgba(52, 211, 153, 0.10)'
+                    },
+                    {
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.10)'
+                    }
+                ][index];
 
-                highestIncreaseVal.textContent = maxDiff >= 0 ? `+${maxDiff.toLocaleString()}` : `${maxDiff.toLocaleString()}`;
-                highestIncreaseSub.textContent = `Period: ${playerDates[maxDiffIdx - 1]} → ${playerDates[maxDiffIdx]}`;
+                return {
+                    label: name,
+                    data: values,
+                    borderColor: styles.borderColor,
+                    backgroundColor: styles.backgroundColor,
+                    borderWidth: index === 0 ? 3 : 2.5,
+                    fill: index === 0,
+                    tension: 0.25,
+                    pointRadius: series.data.length > 50 ? 2 : 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: styles.borderColor,
+                    spanGaps: false,
+                    showLine: true
+                };
+            });
 
-                // B. Latest Increase
-                const latestDiff = dataArr[dataArr.length - 1] - dataArr[dataArr.length - 2];
-                const lastDate = playerDates[playerDates.length - 1];
-                const prevDate = playerDates[playerDates.length - 2];
+            // 5. Batas Y mengikuti damage terbesar dari semua player yang dipilih.
+            const maxDamage = Math.max(...seriesInfo.flatMap(series => series.data));
 
-                latestIncreaseVal.textContent = latestDiff >= 0 ? `+${latestDiff.toLocaleString()}` : `${latestDiff.toLocaleString()}`;
-                latestIncreaseSub.textContent = `Period: ${prevDate} → ${lastDate}`;
-
-                // C. Joke Tier
-                const jokeInfo = getJokeByLatestIncrease(latestDiff);
-                jokeTierName.textContent = jokeInfo.tier;
-                jokeText.textContent = `"${jokeInfo.text}"`;
-
-            } else {
-                highestIncreaseVal.textContent = "N/A";
-                highestIncreaseSub.textContent = "Data tidak cukup";
-                latestIncreaseVal.textContent = "N/A";
-                latestIncreaseSub.textContent = "Data tidak cukup";
-                jokeTierName.textContent = "[ N/A ]";
-                jokeText.textContent = "Butuh minimal 2 data LME untuk analisa.";
-            }
-
-            chartTitle.textContent = `Testaments Across LME`;
-
-            // 3. Render Chart
-            const datasets = [{
-                label: selectedPlayer,
-                data: dataArr,
-                borderColor: '#818cf8',
-                backgroundColor: 'rgba(129, 140, 248, 0.15)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.25,
-                pointRadius: dataArr.length > 50 ? 2 : 4,
-                pointHoverRadius: 6,
-                pointBackgroundColor: '#818cf8'
-            }];
+            chartTitle.textContent = comparisonPlayers.length > 0
+                ? `Testaments Comparison`
+                : `Testaments Across LME`;
 
             if (chartInstance) {
                 chartInstance.destroy();
@@ -329,7 +647,7 @@
             chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: playerDates,
+                    labels: chartDates,
                     datasets: datasets
                 },
                 options: {
@@ -359,7 +677,8 @@
                             usePointStyle: true,
                             callbacks: {
                                 label: function(context) {
-                                    return ` ${context.parsed.y.toLocaleString()} Testaments`;
+                                    if (context.parsed.y === null) return ` ${context.dataset.label}: Not yet in clan`;
+                                    return ` ${context.dataset.label}: ${context.parsed.y.toLocaleString()} Testaments`;
                                 }
                             }
                         }
@@ -387,7 +706,8 @@
                                 color: '#64748b',
                                 font: { family: 'Inter', size: 11 }
                             },
-                            beginAtZero: false
+                            beginAtZero: false,
+                            max: maxDamage
                         }
                     }
                 }
@@ -400,12 +720,30 @@
             
             if (matchedName) {
                 selectedPlayer = matchedName;
+                populateCompareSelects();
                 updateStatsAndChart();
             }
         });
 
+        function handleComparisonInput(inputElement) {
+            const query = inputElement.value.trim();
+
+            // Hanya update kalau nickname yang diketik memang ada.
+            const matchedName = playerNames.find(
+                name => name.toLowerCase() === query.toLowerCase()
+            );
+
+            if (query === '' || matchedName) {
+                updateStatsAndChart();
+            }
+        }
+
+        comparePlayer1.addEventListener('input', () => handleComparisonInput(comparePlayer1));
+        comparePlayer2.addEventListener('input', () => handleComparisonInput(comparePlayer2));
+
         window.onload = function() {
             populateDatalist();
+            populateCompareSelects();
             playerSearch.value = selectedPlayer;
             updateStatsAndChart();
         };
