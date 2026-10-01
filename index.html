@@ -17,6 +17,9 @@
             color: #f8fafc;
         }
     </style>
+<style id="comparison-v5-colors">
+.comparison-player-blue{color:#60a5fa!important}.comparison-player-green{color:#4ade80!important}.comparison-player-yellow{color:#fde047!important}
+</style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 pb-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
@@ -508,6 +511,15 @@ const rawPlayerData = {
             };
         }
 
+        function parseDurationToDays(duration) {
+            if (typeof duration !== 'string') return NaN;
+            const mo = duration.match(/(\d+)\s*mo\.?/i);
+            const d = duration.match(/(\d+)\s*d\.?/i);
+            const months = mo ? Number(mo[1]) : 0;
+            const days = d ? Number(d[1]) : 0;
+            return months * 30 + days;
+        }
+
         function updateComparisonTable(playerNames) {
             const header = document.getElementById('comparisonHeader');
             const body = document.getElementById('comparisonBody');
@@ -541,21 +553,21 @@ const rawPlayerData = {
             header.innerHTML = `
                 <th class="text-left py-3 px-3 text-slate-400 font-semibold">Attribute</th>
                 ${metrics.map((p, i) => `
-                    <th class="text-center py-3 px-3 font-bold ${['text-indigo-400','text-emerald-400','text-amber-400'][i] || 'text-slate-200'}">
+                    <th class="text-center py-3 px-3 font-bold text-slate-100">
                         ${p.name}
                     </th>
                 `).join('')}
             `;
 
             const rows = [
-                { label: 'Rank', key: 'rank', format: v => v ? `#${v}` : '-' },
-                { label: 'Peak', key: 'peak', format: v => v == null ? '-' : v.toLocaleString() },
-                { label: 'Average Growth', key: 'avgGrowth', format: v => v == null ? '-' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}` },
-                { label: 'Big Increase', key: 'bigIncrease', format: v => v == null ? '-' : `+${v.toLocaleString()}` },
-                { label: 'Big Drop', key: 'bigDrop', format: v => v == null ? '-' : `${v >= 0 ? '+' : ''}${v.toLocaleString()}` },
-                { label: 'Last Increase', key: 'lastIncrease', format: v => v == null ? '-' : `${v >= 0 ? '+' : ''}${v.toLocaleString()}` },
-                { label: 'Join Duration', key: 'joinDuration', format: v => v },
-                { label: 'Total LME', key: 'totalLme', format: v => v.toLocaleString() }
+                { label: 'Rank <span class=\"text-red-400\">#</span>', key: 'rank', format: v => v ? `#${v}` : '-' },
+                { label: 'Peak <span class=\"text-blue-400\">⌒</span>', key: 'peak', format: v => v == null ? '-' : v.toLocaleString() },
+                { label: 'Average Growth <span class=\"text-yellow-300\">⤴</span>', key: 'avgGrowth', format: v => v == null ? '-' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}` },
+                { label: 'Big Increase <span class=\"text-green-400\">↑</span>', key: 'bigIncrease', format: v => v == null ? '-' : `+${v.toLocaleString()}` },
+                { label: 'Big Drop <span class=\"text-red-400\">↓</span>', key: 'bigDrop', format: v => v == null ? '-' : `${v >= 0 ? '+' : ''}${v.toLocaleString()}` },
+                { label: 'Last Increase <span class=\"text-blue-400\">↻</span>', key: 'lastIncrease', format: v => v == null ? '-' : `${v >= 0 ? '+' : ''}${v.toLocaleString()}` },
+                { label: 'Join Duration <span class=\"text-yellow-300\">◷</span>', key: 'joinDuration', format: v => v },
+                { label: 'Total LME <span class=\"text-green-400\">●</span>', key: 'totalLme', format: v => v.toLocaleString() }
             ];
 
             body.innerHTML = rows.map((row, rowIndex) => `
@@ -564,10 +576,25 @@ const rawPlayerData = {
                     ${metrics.map(p => {
                         const value = row.key === 'rank' ? rankMap.get(p.name) : p[row.key];
                         const formatted = row.format(value);
-                        let cls = 'text-slate-200';
-                        if (row.key === 'avgGrowth' || row.key === 'bigIncrease' || row.key === 'lastIncrease') cls = value >= 0 ? 'text-emerald-400' : 'text-red-400';
-                        if (row.key === 'bigDrop') cls = value < 0 ? 'text-red-400' : 'text-slate-200';
-                        if (row.key === 'rank') cls = value === 1 ? 'text-yellow-400 font-bold' : 'text-slate-200';
+                        const values = metrics.map(q => row.key === 'rank' ? rankMap.get(q.name) : q[row.key]);
+                        // Join Duration ditampilkan sebagai teks (mis. 2 mo. 15 d.),
+                        // tetapi dibandingkan berdasarkan jumlah hari agar tetap bisa diwarnai.
+                        const comparableValues = row.key === 'joinDuration'
+                            ? values.map(v => parseDurationToDays(v))
+                            : values;
+                        const nums = comparableValues.filter(v => typeof v === 'number' && !Number.isNaN(v));
+                        const comparableValue = row.key === 'joinDuration' ? parseDurationToDays(value) : value;
+                        let cls = 'text-slate-100';
+                        if (nums.length && typeof comparableValue === 'number' && !Number.isNaN(comparableValue)) {
+                            const sorted = [...nums].sort((a, b) => a - b);
+                            if (row.key === 'rank') {
+                                // Rank terlama? Tidak. Rank terkecil = kualitas terbaik.
+                                cls = comparableValue === sorted[0] ? 'text-blue-400 font-bold' : comparableValue === sorted[sorted.length - 1] ? 'text-slate-100 font-bold' : 'text-green-400 font-bold';
+                            } else {
+                                // Durasi/metric lain: terbesar biru, tengah hijau, terkecil putih.
+                                cls = comparableValue === sorted[sorted.length - 1] ? 'text-blue-400 font-bold' : comparableValue === sorted[0] ? 'text-slate-100 font-bold' : 'text-green-400 font-bold';
+                            }
+                        }
                         return `<td class="py-3 px-3 text-center font-semibold ${cls}">${formatted}</td>`;
                     }).join('')}
                 </tr>
