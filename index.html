@@ -45,34 +45,102 @@
                 </div>
             </div>
 
-            <!-- Quick Stats Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-4 border border-slate-700/60 shadow-lg">
-                    <p class="text-xs font-medium text-slate-400">Lowest Testaments</p>
-                    <p id="statLatestValue" class="text-2xl font-bold text-emerald-400 mt-1">-</p>
-                </div>
-                <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-4 border border-slate-700/60 shadow-lg">
-                    <p class="text-xs font-medium text-slate-400">Highest Testaments</p>
-                    <p id="statHighestValue" class="text-2xl font-bold text-amber-400 mt-1">-</p>
-                </div>
-                <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-4 border border-slate-700/60 shadow-lg">
-                    <p class="text-xs font-medium text-slate-400">Total LME</p>
-                    <p id="statDataPoints" class="text-2xl font-bold text-sky-400 mt-1">-</p>
-                </div>
-            </div>
+<!-- Quick Stats Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+    <!-- Lowest Testaments (Merah) -->
+    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-4 border border-slate-700/60 shadow-lg">
+        <p class="text-xs font-medium text-slate-400">Lowest Testaments</p>
+        <div class="flex items-center gap-1.5 mt-1 text-yellow-500">
+            <!-- Panah ke bawah -->
+            <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+            </svg>
+            <p id="statLatestValue" class="text-2xl font-bold text-yellow-500">-</p>
+        </div>
+    </div>
+
+    <!-- Highest Testaments (Hijau) -->
+    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-4 border border-slate-700/60 shadow-lg">
+        <p class="text-xs font-medium text-slate-400">Highest Testaments</p>
+        <div class="flex items-center gap-1.5 mt-1 text-emerald-400">
+            <!-- Panah ke atas -->
+            <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+            </svg>
+            <p id="statHighestValue" class="text-2xl font-bold text-emerald-400">-</p>
+        </div>
+    </div>
+
+    <!-- Total LME (Biru) -->
+    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-4 border border-slate-700/60 shadow-lg">
+        <p class="text-xs font-medium text-slate-400">Total LME</p>
+        <div class="flex items-center gap-1.5 mt-1 text-sky-400">
+            <!-- Pager / Hashtag -->
+            <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+            </svg>
+            <p id="statDataPoints" class="text-2xl font-bold text-sky-400">-</p>
+        </div>
+    </div>
+</div>
 
             <!-- Main Line Chart Card -->
             <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-6 border border-slate-700/60 shadow-xl">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-700/50 mb-6 gap-2">
                     <div>
                         <h2 id="chartTitle" class="text-xl font-bold text-white">Grafik Perkembangan</h2>
-
                     </div>
                 </div>
                 <div class="relative w-full h-[400px] sm:h-[480px]">
                     <canvas id="progressChart"></canvas>
                 </div>
             </div>
+
+            <!-- 3 Bubbles di bawah Grafik -->
+            <div class="grid grid-cols-3 md:grid-cols-1 gap-6">
+                <!-- Bubble 1: Highest Increase -->
+                <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-5 border border-slate-700/60 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-2 text-indigo-400 mb-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                            <h3 class="font-semibold text-slate-200">Highest Increase</h3>
+                        </div>
+                    </div>
+                    <div>
+                        <p id="highestIncreaseVal" class="text-3xl font-extrabold text-indigo-400">+0</p>
+                        <p id="highestIncreaseSub" class="text-xs text-slate-500 mt-1">-</p>
+                    </div>
+                </div>
+
+                <!-- Bubble 2: Latest Increase -->
+                <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-5 border border-slate-700/60 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-2 text-emerald-400 mb-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <h3 class="font-semibold text-slate-200">Latest   Increase</h3>
+                        </div>
+                    </div>
+                    <div>
+                        <p id="latestIncreaseVal" class="text-3xl font-extrabold text-emerald-400">+0</p>
+                        <p id="latestIncreaseSub" class="text-xs text-slate-500 mt-1">-</p>
+                    </div>
+                </div>
+
+                <!-- Bubble 3: Tier / Joke Edition -->
+                <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-5 border border-slate-700/60 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-2 text-amber-400 mb-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <h3 class="font-semibold text-slate-200">Comment for</h3>
+                        </div>
+                        <p id="jokeTierName" class="text-xs font-bold  tracking-wider text-amber-400 mb-1">[ - ]</p>
+                    </div>
+                    <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-700/50 mt-2">
+                        <p id="jokeText" class="text-sm italic text-slate-300">"Pilih player untuk melihat penilaian."</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -136,13 +204,19 @@
 
         const playerSearch = document.getElementById('playerSearch');
         const playerList = document.getElementById('playerList');
-        const statPlayerName = document.getElementById('statPlayerName');
         const statLatestValue = document.getElementById('statLatestValue');
         const statHighestValue = document.getElementById('statHighestValue');
         const statDataPoints = document.getElementById('statDataPoints');
         const chartTitle = document.getElementById('chartTitle');
 
-        // Mengisi pilihan auto-complete di datalist
+        // Element Bubble Tambahan
+        const highestIncreaseVal = document.getElementById('highestIncreaseVal');
+        const highestIncreaseSub = document.getElementById('highestIncreaseSub');
+        const latestIncreaseVal = document.getElementById('latestIncreaseVal');
+        const latestIncreaseSub = document.getElementById('latestIncreaseSub');
+        const jokeTierName = document.getElementById('jokeTierName');
+        const jokeText = document.getElementById('jokeText');
+
         function populateDatalist() {
             playerList.innerHTML = '';
             playerNames.forEach(name => {
@@ -152,14 +226,45 @@
             });
         }
 
+        // Fungsi Evaluasi Jokes Berdasarkan Tier Latest Increase
+        function getJokeByLatestIncrease(value) {
+            if (value <= 0) {
+                return {
+                    tier: "no increase",
+                    text: "Bruh what did you even do"
+                };
+            } else if (value > 0 && value <= 50) {
+                return {
+                    tier: "1 to 50 increase",
+                    text: "Slow and steady wins the race!"
+                };
+            } else if (value > 50 && value <= 100) {
+                return {
+                    tier: "50 to 100 increase",
+                    text: "Good increase man, keep it up!"
+                };
+            } else if (value > 100 && value <= 200) {
+                return {
+                    tier: "100 to 200 increase",
+                    text: "I bet you lost dozen of dollars for this"
+                };
+            } else {
+                return {
+                    tier: "200+ increase",
+                    text: "I'll definitely report you for cheating"
+                };
+            }
+        }
+
         function updateStatsAndChart() {
             const dataArr = rawPlayerData[selectedPlayer] || [];
-            
-            
+            const playerDates = dates.slice(-dataArr.length);
+
+            // 1. Update Quick Stats Utama
             if (dataArr.length > 0) {
-                const latest = Math.min(...dataArr);
+                const lowest = Math.min(...dataArr);
                 const highest = Math.max(...dataArr);
-                statLatestValue.textContent = latest.toLocaleString();
+                statLatestValue.textContent = lowest.toLocaleString();
                 statHighestValue.textContent = highest.toLocaleString();
                 statDataPoints.textContent = dataArr.length;
             } else {
@@ -168,10 +273,48 @@
                 statDataPoints.textContent = "0";
             }
 
+            // 2. Kalkulasi Data untuk 3 Bubble
+            if (dataArr.length > 1) {
+                // A. Highest Increase
+                let maxDiff = -Infinity;
+                let maxDiffIdx = -1;
+
+                for (let i = 1; i < dataArr.length; i++) {
+                    let diff = dataArr[i] - dataArr[i-1];
+                    if (diff > maxDiff) {
+                        maxDiff = diff;
+                        maxDiffIdx = i;
+                    }
+                }
+
+                highestIncreaseVal.textContent = maxDiff >= 0 ? `+${maxDiff.toLocaleString()}` : `${maxDiff.toLocaleString()}`;
+                highestIncreaseSub.textContent = `Period: ${playerDates[maxDiffIdx - 1]} → ${playerDates[maxDiffIdx]}`;
+
+                // B. Latest Increase
+                const latestDiff = dataArr[dataArr.length - 1] - dataArr[dataArr.length - 2];
+                const lastDate = playerDates[playerDates.length - 1];
+                const prevDate = playerDates[playerDates.length - 2];
+
+                latestIncreaseVal.textContent = latestDiff >= 0 ? `+${latestDiff.toLocaleString()}` : `${latestDiff.toLocaleString()}`;
+                latestIncreaseSub.textContent = `Period: ${prevDate} → ${lastDate}`;
+
+                // C. Joke Tier
+                const jokeInfo = getJokeByLatestIncrease(latestDiff);
+                jokeTierName.textContent = jokeInfo.tier;
+                jokeText.textContent = `"${jokeInfo.text}"`;
+
+            } else {
+                highestIncreaseVal.textContent = "N/A";
+                highestIncreaseSub.textContent = "Data tidak cukup";
+                latestIncreaseVal.textContent = "N/A";
+                latestIncreaseSub.textContent = "Data tidak cukup";
+                jokeTierName.textContent = "[ N/A ]";
+                jokeText.textContent = "Butuh minimal 2 data LME untuk analisa.";
+            }
+
             chartTitle.textContent = `Testaments Across LME`;
 
-            const playerDates = dates.slice(-dataArr.length);
-
+            // 3. Render Chart
             const datasets = [{
                 label: selectedPlayer,
                 data: dataArr,
@@ -258,10 +401,8 @@
             });
         }
 
-        // Listener saat nama diketik atau dipilih dari rekomendasi pencarian
         playerSearch.addEventListener('input', (e) => {
             const query = e.target.value.trim();
-            // Cari nama yang persis sama (case-insensitive)
             const matchedName = playerNames.find(name => name.toLowerCase() === query.toLowerCase());
             
             if (matchedName) {
