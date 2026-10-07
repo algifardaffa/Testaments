@@ -49,6 +49,8 @@
     .leaderboard-eternal-text { background:linear-gradient(90deg,#fff0ff 0%,#ff7fe8 28%,#a855f7 50%,#38bdf8 76%,#f0fdff 100%); -webkit-background-clip:text; background-clip:text; color:transparent!important; }
     .leaderboard-eternal-fill { background:linear-gradient(90deg,#fff0ff 0%,#ff7fe8 28%,#a855f7 50%,#38bdf8 76%,#f0fdff 100%)!important; }
     .leaderboard-consistency-value { color:#cbd5e1 !important; }
+    .leaderboard-achievement-value { color:#cbd5e1 !important; }
+    .leaderboard-achievement-fill { background:#ef4444 !important; }
     .ach-card, .ach-tier-detail { border-color:rgba(51,65,85,.6)!important; }
     .leaderboard-sort{display:inline-flex;align-items:center;gap:.25rem;white-space:nowrap;line-height:1.2;min-width:max-content}.leaderboard-sort:hover{color:#fff}.comparison-table-scroll{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}.comparison-table-scroll table{min-width:720px}
     .leaderboard-page-btn { min-width: 2.25rem; height: 2.25rem; padding: 0 0.7rem; border-radius: 0.65rem; border: 1px solid #334155; background: rgba(15,23,42,0.65); color: #94a3b8; font-size: 0.8rem; font-weight: 700; transition: all 0.2s ease; }
@@ -243,11 +245,11 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
 <button class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-5 border border-slate-700/60 shadow-xl text-left hover:bg-slate-800/85 hover:border-indigo-500/40 transition-all" id="goToAchievementBtn" type="button">
 <div class="text-lg font-bold text-white mt-1">Go to achievement</div>
-<div class="text-xs text-slate-400 mt-1">Open the achievement profile for the selected nickname.</div>
+<div class="text-xs text-slate-400 mt-1">Oddery · 43/50 tiers unlocked</div>
 </button>
 <button class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-5 border border-slate-700/60 shadow-xl text-left hover:bg-slate-800/85 hover:border-emerald-500/40 transition-all" id="goToFluxBtn" type="button">
 <div class="text-lg font-bold text-white mt-1">Go to flux</div>
-<div class="text-xs text-slate-400 mt-1">Open the Flux Damage Simulator.</div>
+<div class="text-xs text-slate-400 mt-1">See why your LME score goes down!</div>
 </button>
 </div>
 </section>
@@ -339,7 +341,7 @@
 </div>
 </div>
 <div class="mt-6 p-0 bg-transparent border-0 shadow-none rounded-none" id="fiveAxisComparison">
-<h3 class="text-lg font-bold text-white mb-3">Five-Axis Player Comparison</h3>
+<h3 class="text-lg font-bold text-white mb-3">Star Comparison</h3>
 <div class="relative w-full" style="height:360px"><canvas id="comparisonRadar"></canvas></div>
 </div>
 <!-- COMPARISON INSIGHTS: derived from the same metrics used by Player Insight -->
@@ -386,7 +388,7 @@
 </div>
 <div class="flex items-center justify-between mb-4 mt-8">
 <div>
-<h3 class="text-lg font-bold text-white">Player Comparison</h3>
+<h3 class="text-lg font-bold text-white">Table Comparison</h3>
 </div>
 </div>
 <div class="comparison-table-scroll">
@@ -477,7 +479,7 @@
 <div class="overflow-x-auto">
 <table class="w-full min-w-[900px] text-sm">
 <thead><tr class="border-b border-slate-700/70 text-slate-400">
-<th class="text-left py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="rank" type="button">Rank ↕</button></th><th class="text-left py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="name" type="button">Nickname ↕</button></th><th class="text-right py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="score" type="button">Score ↕</button></th><th class="text-right py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="lastIncrease" type="button">Latest Increase ↕</button></th><th class="text-right py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="growth" type="button">Growth ↕</button></th><th class="text-right py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="bigIncrease" type="button">Big Increase ↕</button></th><th class="text-right py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="bigDrop" type="button">Big Drop ↕</button></th><th class="text-right py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="consistency" type="button">Consistency ↕</button></th>
+<th class="text-left py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="rank" type="button">Rank ↕</button></th><th class="text-left py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="name" type="button">Nickname ↕</button></th><th class="text-right py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="score" type="button">Score ↕</button></th><th class="text-right py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="lastIncrease" type="button">Latest Increase ↕</button></th><th class="text-right py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="growth" type="button">Growth ↕</button></th><th class="text-right py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="bigIncrease" type="button">Big Increase ↕</button></th><th class="text-right py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="bigDrop" type="button">Big Drop ↕</button></th><th class="text-right py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="consistency" type="button">Consistency ↕</button></th><th class="text-right py-3 px-3 font-semibold whitespace-nowrap"><button class="leaderboard-sort" data-sort="achievement" type="button">Achievement ↕</button></th>
 </tr></thead>
 <tbody id="leaderboardBody"></tbody>
 </table>
@@ -518,7 +520,7 @@
 
         // LIVE GOOGLE SHEETS CSV — the published spreadsheet is the only source of player history.
         // Only Player + Testaments/Tier X columns are visualized. Date headers are preserved.
-        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRRXY8P7l1x1W4-0ZDnFmZC7tFRVzOgJ7irWbA5TskVco6LRfcf3FB9sh19_qhX0MBVNDU8-hnSxd5V/pub?output=csv';
+        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTA6FE45lCSDTQ2l6aE69j0DYprxFkqGkbo0V3CLvMjKuSf7qwSE39sXLYVyl3HVkM9pHhI1rmgbZ3y/pub?output=csv';
 
         async function loadCSVData() {
             const response = await fetch(GOOGLE_SHEET_CSV_URL, { cache: 'no-store' });
@@ -1225,6 +1227,17 @@
             });
         }
 
+        function updatePlayerQuickAccess() {
+            const achievementText = document.querySelector('#goToAchievementBtn .text-xs');
+            const fluxText = document.querySelector('#goToFluxBtn .text-xs');
+            if (achievementText) {
+                const summary = typeof window.getAchievementSummary === 'function' ? window.getAchievementSummary(selectedPlayer) : null;
+                if (summary && summary.name) achievementText.textContent = `${summary.name} · ${summary.unlockedTierCount}/${summary.totalTierCount} tiers unlocked`;
+                else achievementText.textContent = 'Select a nickname to view achievement progress.';
+            }
+            if (fluxText) fluxText.textContent = 'See why your LME score goes down!';
+        }
+
         function updatePlayer(refreshAchievement = false) {
             // No player selected = intentionally blank Player visualization.
             // Never fall back to Tancred or any other real player.
@@ -1238,6 +1251,7 @@
                 renderPlayerInsights();
                 if (typeof renderForecast === 'function') renderForecast();
                 if (refreshAchievement && typeof window.renderAchievements === 'function') window.renderAchievements();
+                updatePlayerQuickAccess();
                 return;
             }
             renderChart('playerChart', [selectedPlayer], playerChartMode, playerChartRange, chartTitle, 'player');
@@ -1248,6 +1262,7 @@
             // Achievement is independent of visualization mode. Only refresh it
             // when the selected player/data actually changes, not on Score/Growth/Rank toggles.
             if (refreshAchievement && typeof window.renderAchievements === 'function') window.renderAchievements();
+            updatePlayerQuickAccess();
         }
 
         function getClanAggregateSeries() {
@@ -1436,30 +1451,66 @@
             section.classList.remove('hidden');
         }
 
+        // Shared robust bounds: identical IQR 1.5x outlier handling used by Leaderboard.
+        // Values outside the normal range remain visible, but never stretch the bar/star scale.
+        function percentile(values, q) {
+            if (!values.length) return 0;
+            const sorted = [...values].sort((a, b) => a - b);
+            const pos = (sorted.length - 1) * q;
+            const base = Math.floor(pos);
+            const rest = pos - base;
+            return sorted[base + 1] !== undefined
+                ? sorted[base] + rest * (sorted[base + 1] - sorted[base])
+                : sorted[base];
+        }
+        function getNonOutlierBounds(values) {
+            if (!values.length) return { min: 0, max: 1 };
+            const q1 = percentile(values, 0.25);
+            const q3 = percentile(values, 0.75);
+            const iqr = q3 - q1;
+            const low = q1 - 1.5 * iqr;
+            const high = q3 + 1.5 * iqr;
+            const normal = values.filter(v => v >= low && v <= high);
+            return {
+                min: normal.length ? Math.min(...normal) : Math.min(...values),
+                max: normal.length ? Math.max(...normal) : Math.max(...values)
+            };
+        }
+
         function updateComparisonRadar(players) {
             const canvas = document.getElementById('comparisonRadar');
             if (!canvas) return;
             if (comparisonRadarInstance) { comparisonRadarInstance.destroy(); comparisonRadarInstance = null; }
-            const metrics = [...new Set(players)].filter(name => name && (isClanCompare(name) || hasPlayerHistory(name))).map(getComparisonMetrics);
+            const metrics = [...new Set(players)]
+                .filter(name => name && (isClanCompare(name) || hasPlayerHistory(name)))
+                .map(getComparisonMetrics);
             const axes = [
-                { label: 'Peak', key: 'peak' },
-                { label: 'Current Value', key: 'latest' },
-                { label: 'Growth', key: 'avgGrowth' },
-                { label: 'Last Increase', key: 'lastIncrease' },
-                { label: 'Consistency', key: 'consistency' }
+                { label: 'Latest Increase', key: 'lastIncrease', robust: true },
+                { label: 'Growth', key: 'avgGrowth', robust: true },
+                { label: 'Score', key: 'latest', robust: true },
+                { label: 'Peak', key: 'peak', robust: true },
+                { label: 'Consistency', key: 'consistency', robust: true }
             ];
-            // Normalize against every available clan member, not just the selected players.
+            // Normalize against every available clan member, not just selected players.
+            // All five axes now use the same IQR outlier treatment as Leaderboard's
+            // Latest Increase scaling, so a single extreme player cannot compress
+            // the useful range of the Star Comparison radar.
             const clanMetrics = playerNames.filter(name => hasPlayerHistory(name)).map(getComparisonMetrics);
             const ranges = Object.fromEntries(axes.map(axis => {
-                const values = clanMetrics.map(m => Number(m[axis.key] ?? 0)).filter(Number.isFinite);
-                return [axis.key, { min: Math.min(...values), max: Math.max(...values) }];
+                const values = clanMetrics.map(m => Number(m[axis.key])).filter(Number.isFinite);
+                if (!values.length) return [axis.key, { min: 0, max: 1 }];
+                return [axis.key, axis.robust
+                    ? getNonOutlierBounds(values)
+                    : { min: Math.min(...values), max: Math.max(...values) }];
             }));
             // Six radar levels (50, 60, 70, 80, 90, 100); keep plotted values above the lowest ring.
             const scaled = axes.map(axis => {
-                const { min, max } = ranges[axis.key] || { min: 0, max: 1 };
+                const bounds = ranges[axis.key] || { min: 0, max: 1 };
+                const min = Number(bounds.min);
+                const max = Math.max(min + 1e-9, Number(bounds.max));
                 return metrics.map(m => {
                     const value = Number(m[axis.key] ?? 0);
-                    const ratio = max === min ? 0.5 : (value - min) / (max - min);
+                    const ratio = (value - min) / (max - min);
                     return Math.max(55, Math.min(100, 55 + ratio * 45));
                 });
             });
@@ -1512,8 +1563,9 @@
                 const currentRank = Number(currentRankMap[name]);
                 const previousRank = Number(previousRankMap[name]);
                 const rankDelta = Number.isFinite(currentRank) && Number.isFinite(previousRank) ? previousRank - currentRank : 0;
+                const achievement = typeof window.getAchievementUnlockedCount === 'function' ? window.getAchievementUnlockedCount(name) : 0;
                 return { name, rank: currentRank || 0, rankDelta, score: m.latest ?? 0, growth: m.avgGrowth ?? 0, bigIncrease: m.bigIncrease ?? 0,
-                    bigDrop: m.bigDrop ?? 0, lastIncrease: m.lastIncrease ?? 0, consistency: m.consistency ?? 0 };
+                    bigDrop: m.bigDrop ?? 0, lastIncrease: m.lastIncrease ?? 0, consistency: m.consistency ?? 0, achievement };
             }).sort((a, b) => {
                 const av = a[leaderboardSortKey], bv = b[leaderboardSortKey];
                 const cmp = typeof av === 'string' ? av.localeCompare(bv) : av - bv;
@@ -1525,31 +1577,12 @@
             // Outliers remain visible as numbers, but they do not stretch the 0–100% scale.
             const changeValues = ranking.flatMap(p => [Number(p.bigDrop) || 0, Number(p.lastIncrease) || 0]);
             const latestIncreaseValues = ranking.map(p => Number(p.lastIncrease) || 0);
-            const percentile = (values, q) => {
-                if (!values.length) return 0;
-                const sorted = [...values].sort((a, b) => a - b);
-                const pos = (sorted.length - 1) * q;
-                const base = Math.floor(pos);
-                const rest = pos - base;
-                return sorted[base + 1] !== undefined ? sorted[base] + rest * (sorted[base + 1] - sorted[base]) : sorted[base];
-            };
-            const getNonOutlierBounds = values => {
-                if (!values.length) return { min: 0, max: 1 };
-                const q1 = percentile(values, 0.25);
-                const q3 = percentile(values, 0.75);
-                const iqr = q3 - q1;
-                const low = q1 - 1.5 * iqr;
-                const high = q3 + 1.5 * iqr;
-                const normal = values.filter(v => v >= low && v <= high);
-                return {
-                    min: normal.length ? Math.min(...normal) : Math.min(...values),
-                    max: normal.length ? Math.max(...normal) : Math.max(...values)
-                };
-            };
             const bigDropBounds = getNonOutlierBounds(ranking.map(p => Number(p.bigDrop) || 0));
-            const latestIncreaseBounds = latestIncreaseValues.length ? getNonOutlierBounds(latestIncreaseValues) : { min: 0, max: 1 };
+            const latestIncreaseBounds = latestIncreaseValues.length ? getNonOutlierBounds(latestIncreaseValues) : { min: 0, max: 1 }; // Same robust bounds as Star Comparison
             latestIncreaseBounds.max = Math.max(latestIncreaseBounds.min + 1e-9, latestIncreaseBounds.max);
             const consistencyValues = ranking.map(p => Number(p.consistency)).filter(Number.isFinite);
+            const achievementMin = 10;
+            const achievementMax = 50;
             const consistencyMin = consistencyValues.length ? Math.min(...consistencyValues) : 0;
             const consistencyMax = consistencyValues.length ? Math.max(...consistencyValues) : 1;
             const maxima = Object.fromEntries(['score','growth','bigIncrease'].map(key => [key, Math.max(1, ...ranking.map(p => Math.abs(Number(p[key]) || 0)))]));
@@ -1563,7 +1596,9 @@
                         ? (latestIncreaseBounds.max === latestIncreaseBounds.min ? 100 : Math.max(0, Math.min(100, (value - latestIncreaseBounds.min) / (latestIncreaseBounds.max - latestIncreaseBounds.min) * 100)))
                         : key === 'consistency'
                         ? (consistencyMax === consistencyMin ? 100 : Math.max(0, Math.min(100, (value - consistencyMin) / (consistencyMax - consistencyMin) * 100)))
-                        : Math.max(0, Math.min(100, Math.abs(value) / maxima[key] * 100));
+                        : key === 'achievement'
+                            ? Math.max(0, Math.min(100, (value - achievementMin) / (achievementMax - achievementMin) * 100))
+                            : Math.max(0, Math.min(100, Math.abs(value) / maxima[key] * 100));
                 return `<td class="py-3 px-3"><div class="leaderboard-metric"><span class="leaderboard-metric-value ${valueClass}">${formatter(value)}</span><span class="leaderboard-bar" aria-label="${label} bar"><span class="leaderboard-bar-fill ${fillClass}" style="width:${width}%;${fillClass ? '' : `background-color:${color};`}opacity:1;filter:none"></span></span></div></td>`;
             };
             body.innerHTML = visible.map((player, index) => {
@@ -1575,7 +1610,8 @@
                     ${metricCell(player, 'growth', 'Growth', '#1d4ed8', change, 'text-blue-700 font-semibold')}
                     ${metricCell(player, 'bigIncrease', 'Big Increase', '#60a5fa', change, 'text-blue-400 font-semibold')}
                     ${metricCell(player, 'bigDrop', 'Big Drop', '#4ade80', change, 'text-green-400 font-semibold')}
-                    ${metricCell(player, 'consistency', 'Consistency', '#fde047', v => `${fmt(v)}%`, 'leaderboard-consistency-value font-semibold')}</tr>`;
+                    ${metricCell(player, 'consistency', 'Consistency', '#fde047', v => `${fmt(v)}%`, 'leaderboard-consistency-value font-semibold')}
+                    <td class="py-3 px-3"><div class="leaderboard-metric"><span class="leaderboard-metric-value leaderboard-achievement-value font-semibold">${player.achievement}</span><span class="leaderboard-bar" aria-label="Achievement progress bar"><span class="leaderboard-bar-fill leaderboard-achievement-fill" style="width:${Math.max(0, Math.min(100, (player.achievement - achievementMin) / (achievementMax - achievementMin) * 100))}%;opacity:1;filter:none"></span></span></div></td></tr>`;
             }).join('');
             document.querySelectorAll('.leaderboard-page-btn').forEach(btn => btn.classList.toggle('active', Number(btn.dataset.page) === page));
         }
@@ -2070,6 +2106,11 @@
               return {...tier, target, passed, available:metric.available, progress:metric.value, unlocked:passed};
             });
           }
+          // Public helper for Leaderboard: one unlocked tier = one achievement, max 50.
+          window.getAchievementUnlockedCount = function(name) {
+            if (!name) return 0;
+            return cfg.reduce((sum, achievement) => sum + getTiers(name, achievement).filter(tier => tier.unlocked).length, 0);
+          };
           function renderAchievements() {
             const achievementNames = getAchievementNames();
             // Always resolve the Achievement profile from the CURRENT Player Bubble selection.
@@ -2160,6 +2201,13 @@
             if (expandedCards.has(id)) expandedCards.delete(id); else expandedCards.add(id);
             renderAchievements();
           });
+          window.getAchievementSummary = function(name) {
+            if (!name || !getAchievementNames().includes(name)) return null;
+            const results = cfg.map(achievement => ({...achievement, tiers:getTiers(name, achievement)}));
+            const unlockedTierCount = results.reduce((sum, achievement) => sum + achievement.tiers.filter(tier => tier.unlocked).length, 0);
+            const totalTierCount = results.length * tiers.length;
+            return { name, unlockedTierCount, totalTierCount, overallProgress: totalTierCount ? unlockedTierCount / totalTierCount * 100 : 0 };
+          };
           // Expose the renderer so the async CSV loader and tab navigation can
           // refresh Achievement after playerNames/selectedPlayer are populated.
           window.renderAchievements = renderAchievements;
