@@ -5,10 +5,76 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Tancredi Clan - Testaments Visualizer</title>
+<script>
+/* Theme bootstrap: apply the saved theme before first paint (default = dark, the original look). */
+(function () {
+  var t = null;
+  try { t = localStorage.getItem('testaments-theme'); } catch (e) {}
+  if (t !== 'light' && t !== 'dark') t = 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
 <!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
 <!-- Chart.js for interactive line chart -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+/* Chart.js theme adapter: remaps axis/legend/tooltip/data colors for light mode, reversible, applies to every chart. */
+(function () {
+  if (!window.Chart) return;
+  var norm = function (v) { return String(v).toLowerCase().replace(/\s+/g, ''); };
+  var LIGHT = {
+    '#94a3b8': '#475569', '#cbd5e1': '#334155', '#e2e8f0': '#1e293b', '#f8fafc': '#0f172a',
+    '#1e293b': '#ffffff', '#334155': '#cbd5e1',
+    'rgba(51,65,85,.4)': 'rgba(100,116,139,.2)', 'rgba(51,65,85,0.4)': 'rgba(100,116,139,.2)',
+    'rgba(148,163,184,.08)': 'rgba(100,116,139,.18)', 'rgba(148,163,184,.12)': 'rgba(100,116,139,.18)',
+    'rgba(148,163,184,.2)': 'rgba(100,116,139,.2)', 'rgba(148,163,184,0.2)': 'rgba(100,116,139,.2)',
+    '#fde047': '#a16207', '#facc15': '#a16207', '#4ade80': '#16a34a', '#60a5fa': '#2563eb',
+    '#a78bfa': '#7c3aed', '#818cf8': '#4f46e5', '#34d399': '#059669', '#f59e0b': '#d97706'
+  };
+  var store = new WeakMap();
+  function isLight() { return document.documentElement.getAttribute('data-theme') === 'light'; }
+  function targets(ch) {
+    var out = [], cfg = ch.config || {}, o = cfg.options || {}, data = cfg.data || {};
+    function add(obj, key) { if (obj && typeof obj === 'object' && typeof obj[key] === 'string') out.push([obj, key]); }
+    var pl = o.plugins || {};
+    if (pl.legend) add(pl.legend.labels, 'color');
+    if (pl.tooltip) ['backgroundColor', 'titleColor', 'bodyColor', 'borderColor'].forEach(function (k) { add(pl.tooltip, k); });
+    var sc = o.scales || {};
+    Object.keys(sc).forEach(function (id) {
+      var s = sc[id]; if (!s) return;
+      add(s.grid, 'color'); add(s.ticks, 'color'); add(s.title, 'color'); add(s.angleLines, 'color'); add(s.pointLabels, 'color');
+    });
+    (data.datasets || []).forEach(function (d) {
+      ['borderColor', 'pointBackgroundColor', 'pointBorderColor'].forEach(function (k) { add(d, k); });
+    });
+    return out;
+  }
+  function syncChart(ch) {
+    var light = isLight();
+    targets(ch).forEach(function (t) {
+      var obj = t[0], k = t[1], rec = store.get(obj);
+      if (!rec) { rec = {}; store.set(obj, rec); }
+      var r = rec[k], cur = obj[k];
+      if (!r || cur !== r.applied) r = rec[k] = { orig: cur, applied: cur };
+      var next = light ? (LIGHT[norm(r.orig)] || r.orig) : r.orig;
+      if (next !== cur) obj[k] = next;
+      r.applied = next;
+    });
+  }
+  Chart.register({ id: 'themeAdapter', beforeInit: function (ch) { syncChart(ch); } });
+  window.__themeCharts = {
+    refresh: function () {
+      Object.keys(Chart.instances || {}).forEach(function (id) {
+        var ch = Chart.instances[id];
+        if (!ch) return;
+        syncChart(ch);
+        try { ch.update('none'); } catch (e) {}
+      });
+    }
+  };
+})();
+</script>
 <!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <style>
@@ -134,6 +200,325 @@
 <style id="achievement-progress-monochrome-final">
 .ach-card .ach-progress-fill { background:#64748b !important; }
 </style>
+<style id="theme-light-mode">
+/* ===== Theme toggle button (both themes) ===== */
+.theme-toggle{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:2.15rem;height:2.15rem;margin-left:.45rem;padding:0;border-radius:.65rem;border:1px solid rgba(71,85,105,.7);background:transparent;color:#94a3b8;cursor:pointer;transition:all .2s ease}
+.theme-toggle:hover{color:#fff;background:rgba(51,65,85,.45)}
+.theme-toggle:focus-visible{outline:2px solid #818cf8;outline-offset:2px}
+.theme-toggle svg{width:1.05rem;height:1.05rem;display:block}
+.theme-toggle .icon-sun{display:block}
+.theme-toggle .icon-moon{display:none}
+:root{color-scheme:dark}
+
+/* ===== Light mode ===== */
+html[data-theme="light"]{
+  color-scheme:light;
+  --tier-65d83b:#2f8a14; --tier-b56cff:#8b3fe0; --tier-fde047:#a16207; --tier-ff6b8f:#e11d48; --tier-67e8f9:#0e7490;
+}
+html[data-theme="light"] .theme-toggle{color:#475569;border-color:#cbd5e1}
+html[data-theme="light"] .theme-toggle:hover{color:#0f172a;background:rgba(148,163,184,.22)}
+html[data-theme="light"] .theme-toggle .icon-sun{display:none}
+html[data-theme="light"] .theme-toggle .icon-moon{display:block}
+
+/* Page + header + nav */
+html[data-theme="light"] body{background-color:#eef2f7!important;color:#0f172a!important}
+html[data-theme="light"] .site-brand-subtitle{color:#64748b!important}
+html[data-theme="light"] .tab-btn{color:#475569}
+html[data-theme="light"] .tab-btn:hover{color:#0f172a;background:rgba(148,163,184,.22)}
+html[data-theme="light"] .tab-btn.active{background:#fff;color:#0f172a;border-color:#cbd5e1;box-shadow:0 2px 8px rgba(15,23,42,.08)}
+
+/* Tailwind surfaces */
+html[data-theme="light"] .bg-slate-900{background-color:#fff}
+html[data-theme="light"] body.bg-slate-900{background-color:#eef2f7}
+html[data-theme="light"] .bg-slate-900\/90{background-color:#fff}
+html[data-theme="light"] .bg-slate-900\/80{background-color:#f1f5f9}
+html[data-theme="light"] .bg-slate-900\/75{background-color:#fff}
+html[data-theme="light"] .bg-slate-900\/70{background-color:#f8fafc}
+html[data-theme="light"] .bg-slate-900\/40{background-color:rgba(241,245,249,.85)}
+html[data-theme="light"] .bg-slate-950\/50{background-color:#f1f5f9}
+html[data-theme="light"] .bg-slate-800\/60{background-color:#fff}
+html[data-theme="light"] .bg-slate-800\/70{background-color:#f8fafc}
+html[data-theme="light"] .bg-slate-800{background-color:#e2e8f0}
+html[data-theme="light"] .bg-slate-700{background-color:#cbd5e1}
+html[data-theme="light"] .hover\:bg-slate-800\/85:hover{background-color:#f8fafc}
+html[data-theme="light"] .hover\:bg-slate-800\/50:hover{background-color:rgba(226,232,240,.7)}
+html[data-theme="light"] .shadow-xl{box-shadow:0 1px 3px rgba(15,23,42,.08),0 6px 16px rgba(15,23,42,.05)}
+html[data-theme="light"] .backdrop-blur-md{-webkit-backdrop-filter:none;backdrop-filter:none}
+
+/* Borders */
+html[data-theme="light"] .border-slate-700,
+html[data-theme="light"] .border-slate-700\/70,
+html[data-theme="light"] .border-slate-700\/60,
+html[data-theme="light"] .border-slate-700\/50,
+html[data-theme="light"] .border-slate-600\/60{border-color:#d3dce8}
+html[data-theme="light"] .border-slate-800,
+html[data-theme="light"] .border-slate-800\/70,
+html[data-theme="light"] .border-slate-800\/90{border-color:#e2e8f0}
+
+/* Text */
+html[data-theme="light"] .text-white,
+html[data-theme="light"] .text-slate-100{color:#0f172a}
+html[data-theme="light"] .text-slate-200{color:#1e293b}
+html[data-theme="light"] .text-slate-300{color:#334155}
+html[data-theme="light"] .text-slate-400{color:#475569}
+html[data-theme="light"] .text-slate-500{color:#64748b}
+html[data-theme="light"] .text-slate-600{color:#7c8aa0}
+html[data-theme="light"] .hover\:text-white:hover{color:#0f172a}
+html[data-theme="light"] .bg-indigo-600.text-white,
+html[data-theme="light"] .bg-indigo-500.text-white{color:#fff}
+html[data-theme="light"] .text-indigo-300{color:#4338ca}
+html[data-theme="light"] .text-indigo-400{color:#4f46e5}
+html[data-theme="light"] .text-violet-300{color:#6d28d9}
+html[data-theme="light"] .text-purple-400{color:#7c3aed}
+html[data-theme="light"] .text-blue-400{color:#2563eb}
+html[data-theme="light"] .text-rose-400{color:#e11d48}
+html[data-theme="light"] .text-pink-400{color:#db2777}
+html[data-theme="light"] .text-emerald-400{color:#059669}
+html[data-theme="light"] .text-green-400{color:#16a34a}
+html[data-theme="light"] .leaderboard-sort:hover{color:#0f172a}
+
+/* Inline colors (static HTML + JS-generated markup) */
+html[data-theme="light"] [style*="color:#94a3b8"],html[data-theme="light"] [style*="color: #94a3b8"]{color:#475569!important}
+html[data-theme="light"] [style*="color:#cbd5e1"],html[data-theme="light"] [style*="color: #cbd5e1"]{color:#334155!important}
+html[data-theme="light"] [style*="color:#fde047"],html[data-theme="light"] [style*="color:#eab308"],html[data-theme="light"] [style*="color:#facc15"]{color:#a16207!important}
+html[data-theme="light"] [style*="color:#4ade80"],html[data-theme="light"] [style*="color: rgb(74, 222, 128)"]{color:#16a34a!important}
+html[data-theme="light"] [style*="color:#60a5fa"]{color:#2563eb!important}
+html[data-theme="light"] [style*="color:#a78bfa"]{color:#7c3aed!important}
+html[data-theme="light"] [style*="color:#818cf8"]{color:#4f46e5!important}
+html[data-theme="light"] [style*="color:#34d399"]{color:#059669!important}
+html[data-theme="light"] [style*="color:#f59e0b"]{color:#d97706!important}
+html[data-theme="light"] [style*="color:#fb7185"],html[data-theme="light"] [style*="color: rgb(251, 113, 133)"]{color:#e11d48!important}
+html[data-theme="light"] .comparison-player-blue{color:#2563eb!important}
+html[data-theme="light"] .comparison-player-green{color:#15803d!important}
+html[data-theme="light"] .comparison-player-yellow{color:#a16207!important}
+
+/* Leaderboard */
+html[data-theme="light"] .leaderboard-bar{background:#e2e8f0}
+html[data-theme="light"] .leaderboard-metric-value,
+html[data-theme="light"] .leaderboard-consistency-value,
+html[data-theme="light"] .leaderboard-achievement-value{color:#334155!important}
+html[data-theme="light"] .leaderboard-page-btn{border-color:#cbd5e1;background:#fff;color:#475569}
+html[data-theme="light"] .leaderboard-page-btn:hover{background:#f1f5f9;color:#0f172a}
+html[data-theme="light"] .leaderboard-page-btn.active{background:#e2e8f0;border-color:#94a3b8;color:#0f172a}
+html[data-theme="light"] .leaderboard-eternal-text{background:linear-gradient(90deg,#c026d3 0%,#9333ea 50%,#0284c7 100%);-webkit-background-clip:text;background-clip:text}
+html[data-theme="light"] .leaderboard-eternal-fill{background:linear-gradient(90deg,#c026d3 0%,#9333ea 50%,#0284c7 100%)!important}
+html[data-theme="light"] .eternal-prism{border-color:rgba(147,51,234,.45)}
+
+/* Achievement cards */
+html[data-theme="light"] .ach-card{border-color:#d3dce8!important;background:#fff!important;color:#0f172a!important}
+html[data-theme="light"] .ach-card-toggle{color:#0f172a!important}
+html[data-theme="light"] .ach-card-toggle:hover{background:rgba(15,23,42,.04)!important}
+html[data-theme="light"] .ach-card h3{color:#0f172a!important}
+html[data-theme="light"] .ach-card .text-slate-400{color:#475569!important}
+html[data-theme="light"] .ach-card .text-slate-300{color:#334155!important}
+html[data-theme="light"] .ach-card .ach-tier-icon{color:#475569!important;background:#f1f5f9!important;border-color:#cbd5e1!important}
+html[data-theme="light"] .ach-card .ach-tier-icon::first-letter{color:#475569!important}
+html[data-theme="light"] .ach-card .ach-tier-status{color:#334155!important}
+html[data-theme="light"] .ach-card .ach-tier-detail,
+html[data-theme="light"] .ach-tier-detail{border-color:#d3dce8!important}
+html[data-theme="light"] .ach-card .ach-tier-detail .ach-tier-name{color:#334155!important}
+html[data-theme="light"] .ach-card .ach-tier-detail .ach-tier-state{color:#64748b!important}
+html[data-theme="light"] .ach-card .ach-progress-track,
+html[data-theme="light"] .ach-card .h-2.bg-slate-800,
+html[data-theme="light"] .ach-card .h-1\.5.bg-slate-800{background:#e2e8f0!important}
+
+/* Loading overlay */
+html[data-theme="light"] #initialLoadingOverlay{background:rgba(238,242,247,.96)}
+html[data-theme="light"] .initial-loading-text{color:#475569}
+html[data-theme="light"] .initial-loading-spinner{border-color:rgba(100,116,139,.25);border-top-color:#334155}
+</style>
+
+<style id="final-lightmode-leaderboard-achievement-fix">
+/* =========================================================
+   FINAL VISUAL FIXES
+   Achievement progress:
+   Fill  = #52677D
+   Track = #E2E8F0
+   ========================================================= */
+
+.ach-card .ach-progress-track,
+.ach-card .h-2.bg-slate-800,
+.ach-card .h-1\.5.bg-slate-800 {
+  background: #E2E8F0 !important;
+}
+
+.ach-card .ach-progress-fill,
+.ach-card .ach-progress-fill[style] {
+  background: #52677D !important;
+  box-shadow: none !important;
+}
+
+/* Leaderboard — light mode.
+   The leaderboard rows are generated with inline dark backgrounds,
+   so !important is intentional here to override those inline values. */
+html[data-theme="light"] #leaderboardSection {
+  color: #0f172a;
+}
+
+html[data-theme="light"] #leaderboardSection > .bg-slate-800\/60 {
+  background: #ffffff !important;
+  border-color: #d3dce8 !important;
+  box-shadow: 0 1px 3px rgba(15,23,42,.06), 0 6px 16px rgba(15,23,42,.04);
+}
+
+html[data-theme="light"] #leaderboardSection table {
+  background: #ffffff !important;
+}
+
+html[data-theme="light"] #leaderboardSection thead tr {
+  background: #f8fafc !important;
+  border-bottom-color: #d3dce8 !important;
+}
+
+html[data-theme="light"] #leaderboardSection tbody tr {
+  background: #ffffff !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+html[data-theme="light"] #leaderboardSection tbody tr:nth-child(even) {
+  background: #f8fafc !important;
+}
+
+html[data-theme="light"] #leaderboardSection tbody tr:hover {
+  background: #f1f5f9 !important;
+  filter: none !important;
+}
+
+html[data-theme="light"] #leaderboardSection tbody td {
+  color: #334155;
+}
+
+html[data-theme="light"] #leaderboardSection tbody td:first-child {
+  color: #475569 !important;
+}
+
+html[data-theme="light"] #leaderboardSection tbody td:nth-child(2) {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] #leaderboardSection .leaderboard-metric-value {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] #leaderboardSection .leaderboard-bar {
+  background: #e2e8f0 !important;
+}
+
+html[data-theme="light"] #leaderboardSection .leaderboard-achievement-fill {
+  background: #52677D !important;
+}
+</style>
+
+
+<style id="final-achievement-profile-only-progress-fix">
+/* Achievement Profile only:
+   softer/lighter fill, with the existing light track. */
+.ach-card .ach-progress-track,
+.ach-card .h-2.bg-slate-800,
+.ach-card .h-1\.5.bg-slate-800 {
+  background: #E2E8F0 !important;
+}
+
+.ach-card .ach-progress-fill,
+.ach-card .ach-progress-fill[style] {
+  background: #718096 !important;
+  box-shadow: none !important;
+}
+
+/* IMPORTANT: do not recolor the Leaderboard achievement bar.
+   Restore the normal leaderboard bar styling used by the base file. */
+html[data-theme="light"] #leaderboardSection .leaderboard-achievement-fill {
+  background: #ef4444 !important;
+}
+</style>
+
+
+<style id="achievement-profile-progress-brighter-v3">
+/* Achievement Profile only — brighter, softer progress bars */
+.ach-card .ach-progress-fill,
+.ach-card .ach-progress-fill[style] {
+  background: #8A99A8 !important;
+  box-shadow: none !important;
+}
+.ach-card .ach-progress-track,
+.ach-card .h-2.bg-slate-800,
+.ach-card .h-1\.5.bg-slate-800 {
+  background: #E2E8F0 !important;
+}
+</style>
+
+
+<style id="achievement-profile-progress-brighter-v4">
+/* Achievement Profile only — noticeably brighter progress bar */
+.ach-card .ach-progress-fill,
+.ach-card .ach-progress-fill[style] {
+  background: #AAB6C2 !important;
+  box-shadow: none !important;
+}
+.ach-card .ach-progress-track,
+.ach-card .h-2.bg-slate-800,
+.ach-card .h-1\.5.bg-slate-800 {
+  background: #E8EDF3 !important;
+}
+</style>
+
+
+
+<style id="theme-toggle-reference-only">
+/* Toggle appearance restored from the supplied reference HTML. */
+#themeToggle {
+  white-space: nowrap;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:auto !important;
+  height:auto !important;
+  margin-left:.25rem !important;
+  padding:.5rem .75rem !important;
+  border-radius:.75rem !important;
+  border:1px solid rgba(71,85,105,.7) !important;
+  background:rgba(15,23,42,.8) !important;
+  color:#cbd5e1 !important;
+  font-size:.75rem !important;
+  font-weight:600 !important;
+  cursor:pointer !important;
+  box-shadow:none !important;
+  transform:none !important;
+}
+#themeToggle:hover {
+  color:#fff !important;
+  background:rgba(15,23,42,.95) !important;
+}
+#themeToggle:focus-visible {
+  outline:2px solid #818cf8 !important;
+  outline-offset:2px !important;
+}
+#themeToggle .theme-dark-icon { display:inline; }
+#themeToggle .theme-light-icon { display:none; }
+
+html[data-theme="light"] #themeToggle {
+  border-color:#cbd5e1 !important;
+  background:#f1f5f9 !important;
+  color:#334155 !important;
+}
+html[data-theme="light"] #themeToggle:hover {
+  background:#e2e8f0 !important;
+  color:#0f172a !important;
+}
+html[data-theme="light"] #themeToggle .theme-dark-icon { display:none; }
+html[data-theme="light"] #themeToggle .theme-light-icon { display:inline; }
+</style>
+
+
+<style id="achievement-profile-dark-track-v5">
+/* Achievement Profile track: dark like the leaderboard in dark mode. */
+html:not([data-theme="light"]) .ach-card .ach-progress-track,
+html:not([data-theme="light"]) .ach-card .h-2.bg-slate-800,
+html:not([data-theme="light"]) .ach-card .h-1\.5.bg-slate-800 {
+  background:#1e293b !important;
+}
+</style>
+
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 pb-12">
 <div id="initialLoadingOverlay" aria-live="polite" aria-label="Loading data"><div class="initial-loading-content"><div class="initial-loading-spinner" aria-hidden="true"></div><div class="initial-loading-text">Loading</div></div></div>
@@ -154,6 +539,9 @@
 <button class="tab-btn" id="tabCompare" type="button"><span class="mr-1" style="color:#3b82f6">◈</span>Compare</button>
 <button class="tab-btn" id="tabClan" type="button"><span class="mr-1" style="color:#a78bfa">◆</span>Clan</button>
 <button class="tab-btn" id="tabLeaderboard" type="button"><span class="mr-1" style="color:#eab308">◆</span>Leaderboard</button>
+<button id="themeToggle" type="button" aria-label="Toggle light and dark mode" title="Toggle light and dark mode" class="ml-1 px-3 py-2 rounded-xl border border-slate-700/70 bg-slate-900/80 text-slate-300 hover:text-white text-xs font-semibold transition-all">
+  <span class="theme-dark-icon">☀ Light</span><span class="theme-light-icon">🌙 Dark</span>
+</button>
 </nav>
 </header>
 <div class="space-y-6">
@@ -2116,7 +2504,7 @@
             {name:'Legend', color:'#ff6b8f', icon:'⬢'},
             {name:'Eternal', color:'#67e8f9', icon:'✦'}
           ];
-          const tierColor = tier => `color:${tier?.color || '#94a3b8'} !important;`;
+          const tierColor = tier => tier?.color ? `color:var(--tier-${String(tier.color).replace('#','').toLowerCase()},${tier.color}) !important;` : `color:#94a3b8 !important;`;
           const tierBorder = tier => `border-color:${tier?.color || '#334155'}99;`;
           const tierFill = tier => `background:${tier?.color || '#6366f1'} !important;`;
           const tierSoft = tier => `background:${tier?.color || '#6366f1'}18;`;
@@ -2397,6 +2785,34 @@
     });
     // The normal target handler still runs and refreshes the selected tab's content.
   }, true);
+})();
+</script>
+<script>
+/* Dark / light mode toggle */
+(function () {
+  var KEY = 'testaments-theme';
+  var root = document.documentElement;
+  var btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  function current() { return root.getAttribute('data-theme') === 'light' ? 'light' : 'dark'; }
+  function paint() {
+    var light = current() === 'light';
+    var label = light ? 'Switch to dark mode' : 'Switch to light mode';
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('title', label);
+    btn.setAttribute('aria-pressed', light ? 'true' : 'false');
+  }
+  function setTheme(theme, persist) {
+    root.setAttribute('data-theme', theme);
+    if (persist) { try { localStorage.setItem(KEY, theme); } catch (e) {} }
+    paint();
+    if (window.__themeCharts) window.__themeCharts.refresh();
+  }
+  btn.addEventListener('click', function () { setTheme(current() === 'light' ? 'dark' : 'light', true); });
+  window.addEventListener('storage', function (e) {
+    if (e.key === KEY && (e.newValue === 'light' || e.newValue === 'dark') && e.newValue !== current()) setTheme(e.newValue, false);
+  });
+  paint();
 })();
 </script>
 </div></div></body>
