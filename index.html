@@ -1557,6 +1557,52 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
             if (rankFillTarget !== null) {
                 datasets.forEach(ds => { ds.fill = { target: { value: rankFillTarget } }; });
             }
+
+            // Player Score/Growth trend uses the latest 52 weekly observations,
+            // matching the 52-snapshot window used by Consistency. The selected
+            // chart range only controls which portion of that fixed trend is shown.
+            // Rank and Compare charts remain unchanged.
+            if (chartRefName === 'player' && players.length === 1 && players[0] !== '' && mode !== 'rank') {
+                const fullSeries = getChartSeries(players[0], mode, 'all');
+                const fullPoints = fullSeries.dates
+                    .map((date, x) => ({ date, x, rawY: fullSeries.data[x] }))
+                    .filter(point => point.rawY !== null && point.rawY !== undefined && point.rawY !== '' && Number.isFinite(Number(point.rawY)))
+                    .slice(-52)
+                    .map(point => ({ ...point, y: Number(point.rawY) }));
+                if (fullPoints.length >= 2) {
+                    const meanX = fullPoints.reduce((sum, point) => sum + point.x, 0) / fullPoints.length;
+                    const meanY = fullPoints.reduce((sum, point) => sum + point.y, 0) / fullPoints.length;
+                    let numerator = 0, denominator = 0;
+                    fullPoints.forEach(point => {
+                        numerator += (point.x - meanX) * (point.y - meanY);
+                        denominator += (point.x - meanX) ** 2;
+                    });
+                    const slope = denominator > 0 ? numerator / denominator : 0;
+                    const intercept = meanY - slope * meanX;
+                    const fullIndexByDate = new Map(fullSeries.dates.map((date, index) => [date, index]));
+                    const trendData = chartDates.map(date => {
+                        const fullIndex = fullIndexByDate.get(date);
+                        if (fullIndex === undefined) return null;
+                        const prediction = intercept + slope * fullIndex;
+                        return Number.isFinite(prediction) ? prediction : null;
+                    });
+                    datasets.push({
+                        label: 'Linear Regression (last 52 weeks)',
+                        data: trendData,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2.5,
+                        borderDash: [7, 5],
+                        pointRadius: 0,
+                        pointHoverRadius: 0,
+                        pointHitRadius: 8,
+                        fill: false,
+                        tension: 0,
+                        spanGaps: false,
+                        order: 0
+                    });
+                }
+            }
             return { chartDates, datasets, maxValue: Math.max(...allValues), minValue: Math.min(...allValues), rankFillTarget };
         }
 
