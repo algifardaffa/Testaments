@@ -1258,10 +1258,11 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
             return { dates: dates.slice(), data: values };
         }
 
-        // Consistency is based only on residual distance from a least-squares linear trend.
-        // Relative RMSE is calibrated against the live dataset's robust 10th/90th percentiles;
-        // below q10 maps to 100, above q90 maps to 0, and intermediate values map linearly.
-        const consistencyCalibrationCache = { signature: '', values: [], q10: 0, q90: 1 };
+        // Consistency measures distance from a least-squares linear trend.
+        // 100% is reserved for a genuinely straight-line series (within floating-point tolerance).
+        // The robust median of positive relative RMSE values sets the scale: at that error level,
+        // consistency is 50%; larger deviations smoothly fall below 50% without percentile clipping.
+        const consistencyCalibrationCache = { signature: '', values: [], scale: 1 };
         function regressionResidualStats(values) {
             const ys = (Array.isArray(values) ? values : []).filter(v => v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v))).map(Number).slice(-52);
             if (ys.length < 4) return null; // small samples cannot establish a meaningful pattern
@@ -1284,23 +1285,30 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
             const signature = `${dates.length}|${playerNames.length}|${playerNames.map(name => { const d=rawPlayerData[name]||[]; return `${name}:${d.length}:${d[d.length-1]}`; }).join('\u001f')}`;
             if (consistencyCalibrationCache.signature === signature) return consistencyCalibrationCache;
             const values = playerNames.map(name => regressionResidualStats(getPlayerSeries(name).data)).filter(Boolean).map(x=>x.relativeRmse).filter(Number.isFinite).sort((a,b)=>a-b);
-            consistencyCalibrationCache.signature = signature; consistencyCalibrationCache.values = values;
-            consistencyCalibrationCache.q10 = quantile(values, 0.10); consistencyCalibrationCache.q90 = quantile(values, 0.90);
-            if (!(consistencyCalibrationCache.q90 > consistencyCalibrationCache.q10)) {
-                consistencyCalibrationCache.q10 = values.length ? values[0] : 0;
-                consistencyCalibrationCache.q90 = values.length ? values[values.length-1] : 1;
+            consistencyCalibrationCache.signature = signature;
+            consistencyCalibrationCache.values = values;
+            const positive = values.filter(v => v > 1e-12);
+            if (positive.length) {
+                const middle = positive.length >> 1;
+                consistencyCalibrationCache.scale = positive.length % 2
+                    ? positive[middle]
+                    : (positive[middle - 1] + positive[middle]) / 2;
+            } else {
+                // All players are perfectly linear or there is not enough variation to calibrate.
+                consistencyCalibrationCache.scale = 1;
             }
             return consistencyCalibrationCache;
         }
         function calculateCalibratedConsistency(playerName, values) {
             const stats = regressionResidualStats(values);
             if (!stats) return null;
+            // Avoid floating-point noise for mathematically straight lines, but never award 100%
+            // merely for being among the most consistent players.
+            if (stats.relativeRmse <= 1e-12) return 100;
             const cal = getConsistencyCalibration();
-            if (!cal.values.length) return 0;
-            const span = cal.q90-cal.q10;
-            if (!(span > 1e-12)) return stats.relativeRmse <= cal.q10 ? 100 : 0;
-            const normalized = (stats.relativeRmse-cal.q10)/span;
-            return Math.max(0, Math.min(100, 100*(1-normalized)));
+            const scale = Number.isFinite(cal.scale) && cal.scale > 1e-12 ? cal.scale : 1;
+            const score = 100 / (1 + stats.relativeRmse / scale);
+            return Math.max(0, Math.min(100, Number.isFinite(score) ? score : 0));
         }
 
         function calculateComparisonMetrics(playerName) {
