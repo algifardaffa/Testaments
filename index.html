@@ -1109,6 +1109,24 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
         const isClanCompare = name => name === CLAN_COMPARE_KEY;
         const compareDisplayName = name => isClanCompare(name) ? CLAN_COMPARE_LABEL : name;
 
+        // Versioned, namespaced persistence. Storage failures must never stop CSV loading.
+        const TESTAMENTS_KEYS = { compare: 'testaments.compare.v1', flux: 'testaments.flux.v1', achievements: 'testaments.achievements.v1' };
+        function safeReadJSON(key, fallback) { try { const raw = localStorage.getItem(key); if (!raw) return fallback; const value = JSON.parse(raw); return value && typeof value === 'object' ? value : fallback; } catch (_) { return fallback; } }
+        function safeWriteJSON(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (_) { return false; } }
+        const normalizePlayerKey = name => String(name || '').trim().toLocaleLowerCase();
+        function saveCompareSelections() { safeWriteJSON(TESTAMENTS_KEYS.compare, { slots: [comparePlayer1.value, comparePlayer2.value, comparePlayer3.value].map(v => String(v || '').trim()) }); }
+        function restoreCompareSelections() {
+            const saved = safeReadJSON(TESTAMENTS_KEYS.compare, {}); const slots = Array.isArray(saved.slots) ? saved.slots : [];
+            [comparePlayer1, comparePlayer2, comparePlayer3].forEach((input, index) => {
+                const wanted = String(slots[index] || '').trim();
+                if (!wanted) { input.value = ''; return; }
+                if (wanted === CLAN_COMPARE_LABEL || wanted === CLAN_COMPARE_KEY) { input.value = CLAN_COMPARE_LABEL; return; }
+                const match = playerNames.find(name => normalizePlayerKey(name) === normalizePlayerKey(wanted));
+                input.value = match || '';
+            });
+            saveCompareSelections();
+        }
+
         const damageModeBtn = document.getElementById('damageModeBtn');
         const growthModeBtn = document.getElementById('growthModeBtn');
         const rankModeBtn = document.getElementById('rankModeBtn');
@@ -1240,6 +1258,51 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
             return { dates: dates.slice(), data: values };
         }
 
+        // Consistency is based only on residual distance from a least-squares linear trend.
+        // Relative RMSE is calibrated against the live dataset's robust 10th/90th percentiles;
+        // below q10 maps to 100, above q90 maps to 0, and intermediate values map linearly.
+        const consistencyCalibrationCache = { signature: '', values: [], q10: 0, q90: 1 };
+        function regressionResidualStats(values) {
+            const ys = (Array.isArray(values) ? values : []).filter(v => v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v))).map(Number).slice(-52);
+            if (ys.length < 4) return null; // small samples cannot establish a meaningful pattern
+            const n = ys.length, meanX = (n - 1) / 2, meanY = ys.reduce((a,b)=>a+b,0) / n;
+            let numerator = 0, denominator = 0;
+            for (let i=0;i<n;i++) { numerator += (i-meanX)*(ys[i]-meanY); denominator += (i-meanX)**2; }
+            const slope = denominator > 0 ? numerator/denominator : 0, intercept = meanY - slope*meanX;
+            let squared = 0;
+            for (let i=0;i<n;i++) { const residual = ys[i] - (intercept+slope*i); squared += residual*residual; }
+            const rmse = Math.sqrt(squared/n);
+            const scale = Math.max(Math.abs(meanY), (Math.max(...ys)-Math.min(...ys))*0.25, 1);
+            return { rmse, relativeRmse: rmse/scale, n };
+        }
+        function quantile(sorted, q) {
+            if (!sorted.length) return 0;
+            const pos = (sorted.length-1)*q, lo = Math.floor(pos), hi = Math.ceil(pos);
+            return sorted[lo] + (sorted[hi]-sorted[lo])*(pos-lo);
+        }
+        function getConsistencyCalibration() {
+            const signature = `${dates.length}|${playerNames.length}|${playerNames.map(name => { const d=rawPlayerData[name]||[]; return `${name}:${d.length}:${d[d.length-1]}`; }).join('\u001f')}`;
+            if (consistencyCalibrationCache.signature === signature) return consistencyCalibrationCache;
+            const values = playerNames.map(name => regressionResidualStats(getPlayerSeries(name).data)).filter(Boolean).map(x=>x.relativeRmse).filter(Number.isFinite).sort((a,b)=>a-b);
+            consistencyCalibrationCache.signature = signature; consistencyCalibrationCache.values = values;
+            consistencyCalibrationCache.q10 = quantile(values, 0.10); consistencyCalibrationCache.q90 = quantile(values, 0.90);
+            if (!(consistencyCalibrationCache.q90 > consistencyCalibrationCache.q10)) {
+                consistencyCalibrationCache.q10 = values.length ? values[0] : 0;
+                consistencyCalibrationCache.q90 = values.length ? values[values.length-1] : 1;
+            }
+            return consistencyCalibrationCache;
+        }
+        function calculateCalibratedConsistency(playerName, values) {
+            const stats = regressionResidualStats(values);
+            if (!stats) return null;
+            const cal = getConsistencyCalibration();
+            if (!cal.values.length) return 0;
+            const span = cal.q90-cal.q10;
+            if (!(span > 1e-12)) return stats.relativeRmse <= cal.q10 ? 100 : 0;
+            const normalized = (stats.relativeRmse-cal.q10)/span;
+            return Math.max(0, Math.min(100, 100*(1-normalized)));
+        }
+
         function calculateComparisonMetrics(playerName) {
             if (isClanCompare(playerName)) {
                 const members = playerNames.filter(name => hasPlayerHistory(name));
@@ -1281,35 +1344,7 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
             for (let i = 1; i < analysisData.length; i++) changes.push(analysisData[i] - analysisData[i - 1]);
             const positiveChanges = changes.filter(x => x > 0);
             const allPositiveChanges = allChanges.filter(x => x > 0);
-            let consistency = 0;
-            if (analysisData.length === 1) {
-                consistency = 100;
-            } else if (analysisData.length > 1) {
-                // Original consistency calculation: use the full 52-snapshot window.
-                // Outlier filtering is intentionally NOT applied to the consistency score.
-                const cleanPoints = analysisData.map((value, i) => ({ x: i, y: Number(value) }));
-                const mean = cleanPoints.reduce((sum, p) => sum + p.y, 0) / cleanPoints.length;
-                const n = cleanPoints.length;
-                const sums = cleanPoints.reduce((acc, p) => {
-                    acc.x += p.x; acc.x2 += p.x ** 2; acc.y += p.y; acc.xy += p.x * p.y;
-                    return acc;
-                }, { x:0, x2:0, y:0, xy:0 });
-                const denominator = n * sums.x2 - sums.x ** 2;
-                const slope = Math.abs(denominator) > 1e-10 ? (n * sums.xy - sums.x * sums.y) / denominator : 0;
-                const intercept = (sums.y - slope * sums.x) / n;
-                const predictions = cleanPoints.map(p => slope * p.x + intercept);
-                const rmse = Math.sqrt(cleanPoints.reduce((sum, p, i) => sum + (p.y - predictions[i]) ** 2, 0) / n);
-                const R = mean > 0 ? rmse / mean : 1;
-                const meanAbsFlux = changes.length ? changes.reduce((sum, value) => sum + Math.abs(value), 0) / changes.length : 0;
-                const F = mean > 0 ? meanAbsFlux / mean : 1;
-                let reversals = 0;
-                for (let i = 1; i < changes.length; i++) {
-                    if (changes[i] !== 0 && changes[i - 1] !== 0 && Math.sign(changes[i]) !== Math.sign(changes[i - 1])) reversals++;
-                }
-                const V = changes.length > 1 ? reversals / (changes.length - 1) : 0;
-                const penalty = 2.0 * R + 1.5 * F + 0.4 * V;
-                consistency = Math.max(0, Math.min(100, 100 * Math.exp(-penalty)));
-            }
+            const consistency = calculateCalibratedConsistency(playerName, analysisData);
             return {
                 name: playerName,
                 latest: observedData[observedData.length - 1],
@@ -2293,7 +2328,7 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
             }
         });
 
-        [comparePlayer1, comparePlayer2, comparePlayer3].forEach(input => input.addEventListener('input', () => updateCompare()));
+        [comparePlayer1, comparePlayer2, comparePlayer3].forEach(input => { const changed = () => { saveCompareSelections(); updateCompare(); }; input.addEventListener('input', changed); input.addEventListener('change', changed); });
 
         // FLUX CALCULATOR: formula preserved from the supplied Flux source.
         let fluxChartInstance = null;
@@ -2301,6 +2336,17 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
+        const fluxInputs = ['fluxSsGlovesToggle','fluxMinBelt','fluxMaxBelt','fluxResoc','fluxResod'].map(id => document.getElementById(id));
+        function saveFluxSettings() {
+            const data = { ssGloves: document.getElementById('fluxSsGlovesToggle').checked, minBelt: document.getElementById('fluxMinBelt').value, maxBelt: document.getElementById('fluxMaxBelt').value, resoChance: document.getElementById('fluxResoc').value, resoDamage: document.getElementById('fluxResod').value };
+            safeWriteJSON(TESTAMENTS_KEYS.flux, data);
+        }
+        function restoreFluxSettings() {
+            const data = safeReadJSON(TESTAMENTS_KEYS.flux, null); if (!data) return;
+            const glove = document.getElementById('fluxSsGlovesToggle'); if (typeof data.ssGloves === 'boolean') glove.checked = data.ssGloves;
+            const assign = (id, value, min, max) => { const el=document.getElementById(id); const n=Number(value); if (value !== '' && Number.isFinite(n) && n>=min && n<=max) el.value=String(value); };
+            assign('fluxMinBelt',data.minBelt,0,100000); assign('fluxMaxBelt',data.maxBelt,0,100000); assign('fluxResoc',data.resoChance,0,100); assign('fluxResod',data.resoDamage,0,100000);
+        }
         function runFluxSimulation() {
             const min = parseFloat(document.getElementById('fluxMinBelt').value);
             const max = parseFloat(document.getElementById('fluxMaxBelt').value);
@@ -2309,7 +2355,7 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
             const glove = document.getElementById('fluxSsGlovesToggle').checked ? 2.3 : 2.0;
             const n = 100;
 
-            if ([min,max,resoc,resod].some(Number.isNaN) || min > max) return;
+            if ([min,max,resoc,resod].some(v => !Number.isFinite(v)) || min < 0 || max < 0 || min > max || resoc < 0 || resoc > 100 || resod < 0 || min > 100000 || max > 100000 || resod > 100000) return;
 
             const gloves = 0.5 + glove / 2;
             const resox = (resoc * resod * 4) / 50000 + 1;
@@ -2374,7 +2420,8 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
         }
 
         document.getElementById('fluxRunBtn').addEventListener('click', runFluxSimulation);
-        document.getElementById('fluxSsGlovesToggle').addEventListener('change', runFluxSimulation);
+        document.getElementById('fluxSsGlovesToggle').addEventListener('change', () => { saveFluxSettings(); runFluxSimulation(); });
+        ['fluxMinBelt','fluxMaxBelt','fluxResoc','fluxResod'].forEach(id => document.getElementById(id).addEventListener('change', saveFluxSettings));
 
         // Forecast bubble is independent from Player / Compare charts to prevent chart overlap.
         let forecastChartInstance = null;
@@ -2588,6 +2635,9 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
                 return;
             }
             populateDatalist();
+            restoreCompareSelections();
+            restoreFluxSettings();
+            if (typeof window.syncAchievementHistory === 'function') window.syncAchievementHistory();
             // Auto-open a valid remembered player only after the live dataset is ready.
             rememberedPlayerData = readRememberedPlayer();
             if (rememberedPlayerData) {
@@ -2609,6 +2659,7 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
             renderClanScoreDistribution();
             renderClanForecast();
             runFluxSimulation();
+            saveFluxSettings();
             renderForecast();
             // CSV is loaded and all initial UI/charts are ready: stop the spinner.
             requestAnimationFrame(() => document.getElementById('initialLoadingOverlay')?.classList.add('is-hidden'));
@@ -2720,23 +2771,57 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
             {id:'longevity', name:'Endurance', category:'Longevity', desc:'Stay active and keep playing for longer.', metric:'duration', targets:[7,30,90,180,365], unit:'days'},
             {id:'persistence', name:'Relentless', category:'Consistency', desc:'Keep getting better week after week.', metric:'positiveCount', targets:[10,20,30,40,50], unit:'positive intervals'}
           ];
+          const achievementStore = safeReadJSON(TESTAMENTS_KEYS.achievements, { players: {} });
+          if (!achievementStore.players || typeof achievementStore.players !== 'object') achievementStore.players = {};
+          function persistAchievementState() { safeWriteJSON(TESTAMENTS_KEYS.achievements, achievementStore); }
+          function playerAchievementRecord(name, achievementId) {
+            const key = normalizePlayerKey(name);
+            if (!achievementStore.players[key] || typeof achievementStore.players[key] !== 'object') achievementStore.players[key] = { displayName: name, achievements: {} };
+            const player = achievementStore.players[key]; player.displayName = name;
+            if (!player.achievements[achievementId]) player.achievements[achievementId] = { highestTierIndex: -1, historicalBest: null };
+            return player.achievements[achievementId];
+          }
           function evaluate(name, achievement) {
             if (!name) return {available:false, value:0};
             const current = dataFor(name);
             const raw = current[achievement.metric];
-            return {available:Number.isFinite(raw), value:Number.isFinite(raw) ? Math.max(0,raw) : 0};
+            const available = raw !== null && raw !== undefined && Number.isFinite(Number(raw));
+            return {available, value:available ? Math.max(0,Number(raw)) : 0};
           }
           function getTiers(name, achievement) {
             const metric = evaluate(name, achievement);
             const source = dataFor(name);
-            const rivalryEternal = achievement.id === 'rivalry' && Number(source.rank) === 1;
+            // Overtake/Rival Slayer gets Eternal for a verified current clan Top 3.
+            const rivalryEternal = achievement.id === 'rivalry' && Number.isFinite(Number(source.rank)) && Number(source.rank) >= 1 && Number(source.rank) <= 3;
+            const record = playerAchievementRecord(name, achievement.id);
+            const historical = record.historicalBest;
+            if (metric.available && Number.isFinite(Number(metric.value))) {
+              if (historical === null || historical === undefined || !Number.isFinite(Number(historical))) record.historicalBest = metric.value;
+              else if (achievement.rank) record.historicalBest = Math.min(Number(historical), metric.value);
+              else record.historicalBest = Math.max(Number(historical), metric.value);
+            }
+            let earnedIndex = Number.isInteger(record.highestTierIndex) ? record.highestTierIndex : -1;
+            tiers.forEach((tier, index) => {
+              const target = achievement.targets[index];
+              const passed = metric.available && (rivalryEternal || (achievement.rank ? metric.value > 0 && metric.value <= target : metric.value >= target));
+              if (passed) earnedIndex = Math.max(earnedIndex, index);
+            });
+            record.highestTierIndex = Math.max(-1, Math.min(tiers.length-1, earnedIndex));
+            if (rivalryEternal) record.highestTierIndex = tiers.length-1;
+            persistAchievementState();
             return tiers.map((tier, index) => {
               const target = achievement.targets[index];
               const passed = metric.available && (rivalryEternal || (achievement.rank ? metric.value > 0 && metric.value <= target : metric.value >= target));
-              return {...tier, target, passed, available:metric.available, progress:metric.value, unlocked:passed};
+              const unlocked = index <= record.highestTierIndex;
+              return {...tier, target, passed, available:metric.available, progress:metric.value, unlocked};
             });
           }
           // Public helper for Leaderboard: one unlocked tier = one achievement, max 50.
+          // Evaluate and persist current unlocks for every valid player whenever fresh CSV data loads.
+          window.syncAchievementHistory = function() {
+            getAchievementNames().forEach(name => cfg.forEach(achievement => getTiers(name, achievement)));
+            persistAchievementState();
+          };
           window.getAchievementUnlockedCount = function(name) {
             if (!name) return 0;
             return cfg.reduce((sum, achievement) => sum + getTiers(name, achievement).filter(tier => tier.unlocked).length, 0);
