@@ -2529,10 +2529,10 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
                     interaction:{mode:'index',intersect:false},
                     plugins:{
                         legend:{labels:{color:'#94a3b8',font:{family:'Inter'}}},
-                        tooltip:{callbacks:{title:items=>`Flux change: ${items[0].label} medals`,label:c=>`${c.dataset.label}: ${c.parsed.y.toFixed(1)}`}}
+                        tooltip:{callbacks:{title:items=>`Flux change: ${items[0].label}`,label:c=>`${c.dataset.label}: ${c.parsed.y.toFixed(1)}`}}
                     },
                     scales:{
-                        x:{title:{display:true,text:'Flux change per run (assuming Flux points equal medals)',color:'#94a3b8'},grid:{color:'rgba(51,65,85,0.25)'},ticks:{color:'#64748b',maxTicksLimit:15}},
+                        x:{title:{display:true,text:'Flux change per run',color:'#94a3b8'},grid:{color:'rgba(51,65,85,0.25)'},ticks:{color:'#64748b',maxTicksLimit:15}},
                         y:{title:{display:true,text:'Number of simulations',color:'#94a3b8'},beginAtZero:true,grid:{color:'rgba(51,65,85,0.35)'},ticks:{color:'#64748b'}}
                     }
                 }
@@ -2553,7 +2553,8 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
                 const tail = percent / 200;
                 const low = fluxQuantile(sorted, tail);
                 const high = fluxQuantile(sorted, 1-tail);
-                const magnitude = Math.max(Math.abs(low), Math.abs(high));
+                // Chart values are Flux points; 1 Flux point = 2 medals.
+                const magnitude = Math.max(Math.abs(low), Math.abs(high)) * 2;
                 const node = document.getElementById(`fluxChance${percent}`);
                 if (node) node.textContent = `±${magnitude.toFixed(1)}`;
             });
@@ -3150,7 +3151,7 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
                 return `<div class="ach-tier-detail rounded-xl p-3 ${tier.unlocked ? 'bg-slate-800/70' : 'bg-slate-950/50'}" style="${tierBorder(tier)}"><div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2"><span class="text-lg" style="${tierColor(tier)}">${tier.icon}</span><span class="text-sm font-bold ach-tier-name" style="${tierColor(tier)}">${tier.name}</span></div><span class="text-[10px] font-bold ach-tier-state" style="${tier.unlocked ? `color:${tier.color} !important` : 'color:#94a3b8 !important'}">${state.toUpperCase()}</span></div><p class="text-xs text-slate-300 mt-2">${requirement}</p></div>`;
               }).join('');
               const cardTier = highest || tiers[0];
-              return `<article class="ach-card rounded-2xl border bg-slate-900/75 overflow-hidden"><button type="button" class="ach-card-toggle w-full text-left p-4 md:p-5 hover:bg-slate-800/50 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500" data-ach-toggle="${achievement.id}" aria-expanded="${expanded ? 'true' : 'false'}"><div class="flex items-start gap-3"><div class="min-w-0 flex-1"><div class="flex items-center gap-2 min-w-0"><h3 class="font-bold text-white truncate">${esc(achievement.name)}</h3>${collapsedSummary}</div><div class="mt-3 text-xs text-slate-300">${collapsedProgressText}</div><div class="ach-progress-track"><div class="h-full rounded-full transition-all ach-progress-fill" data-ach-fill-tier="${highest ? highest.name : 'none'}" style="width:${collapsedPercent}%;background:${highest ? highest.color : '#94a3b8'} !important;box-shadow:none !important"></div></div></div><span class="text-slate-400 text-lg ml-1" aria-hidden="true">${expanded ? '−' : '+'}</span></div></button>${expanded ? `<div class="px-4 pb-4 md:px-5 md:pb-5 border-t border-slate-800"><p class="text-sm text-slate-300 mt-4">${esc(achievement.desc)}</p><p class="text-xs text-slate-400 mt-2">${currentMetricText}</p><div class="mt-4 space-y-2">${expandedDetails}</div></div>` : ''}</article>`;
+              return `<article class="ach-card rounded-2xl border bg-slate-900/75 overflow-hidden"><button type="button" class="ach-card-toggle w-full text-left p-4 md:p-5 hover:bg-slate-800/50 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500" data-ach-toggle="${achievement.id}" aria-expanded="${expanded ? 'true' : 'false'}"><div class="flex items-start gap-3"><div class="min-w-0 flex-1"><div class="flex items-center gap-2 min-w-0"><h3 class="font-bold text-white truncate">${esc(achievement.name)}</h3>${collapsedSummary}</div><div class="mt-3 text-xs text-slate-300">${collapsedProgressText}</div><div class="ach-flux-bar" data-ach-fill-tier="${highest ? highest.name : 'none'}" style="--tier:${highest ? highest.color : '#94a3b8'};--p:${(collapsedPercent / 100).toFixed(4)}"><span class="ach-flux-fill"></span></div></div><span class="text-slate-400 text-lg ml-1" aria-hidden="true">${expanded ? '−' : '+'}</span></div></button>${expanded ? `<div class="px-4 pb-4 md:px-5 md:pb-5 border-t border-slate-800"><p class="text-sm text-slate-300 mt-4">${esc(achievement.desc)}</p><p class="text-xs text-slate-400 mt-2">${currentMetricText}</p><div class="mt-4 space-y-2">${expandedDetails}</div></div>` : ''}</article>`;
             }).join('');
           }
           $('achievementGrid').addEventListener('click', event => {
@@ -3303,5 +3304,12 @@ html[data-theme="light"] .ach-card .ach-progress-track{background:#E2E8F0!import
 }
 </style>
 
+<style id="achievement-flux-bar">
+/* Achievement progress bar: same track and size as the Flux sliders, no handle; color follows the tier. */
+.ach-card .ach-flux-bar{--tier:#94a3b8;--p:0;position:relative;height:1rem;margin-top:.25rem}
+.ach-card .ach-flux-bar::before{content:"";position:absolute;left:0;right:0;top:50%;height:5px;transform:translateY(-50%);border-radius:999px;background:#334155}
+.ach-card .ach-flux-fill{position:absolute;left:0;top:50%;height:5px;transform:translateY(-50%);width:calc(100% * var(--p));border-radius:999px;background:var(--tier);transition:width .25s ease}
+html[data-theme="light"] .ach-card .ach-flux-bar::before{background:#e2e8f0}
+</style>
 </body>
 </html>
