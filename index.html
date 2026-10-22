@@ -132,6 +132,29 @@
     .ach-card .text-slate-400 { color:#94a3b8!important; }
     .ach-card .text-slate-300 { color:#cbd5e1!important; }
     .ach-card .ach-tier-icon { border-color:rgba(51,65,85,.6)!important; }
+
+/* Flux controls: compact gamer-friendly sliders; the belt is one dual-handle interval. */
+.flux-slider { width:100%; accent-color:#818cf8; cursor:pointer; }
+.flux-controls { gap:1rem!important; }
+.flux-control-row { padding:.2rem 0 .8rem; border-bottom:1px solid rgba(71,85,105,.45); }
+.flux-dual-range { position:relative; height:2rem; display:flex; align-items:center; touch-action:pan-y; }
+.flux-dual-range::before { content:""; position:absolute; left:0; right:0; height:5px; background:#334155; border-radius:999px; pointer-events:none; }
+.flux-dual-range::after { content:""; position:absolute; top:50%; transform:translateY(-50%); left:calc(10px + (100% - 20px) * var(--flux-range-start,.0769)); width:calc((100% - 20px) * (var(--flux-range-end,.7692) - var(--flux-range-start,.0769))); height:5px; border-radius:999px; background:#818cf8; pointer-events:none; z-index:1; }
+.flux-dual-range input[type=range] { position:absolute; inset:0; width:100%; height:2rem; margin:0; background:transparent; pointer-events:none; appearance:none; -webkit-appearance:none; }
+.flux-dual-range input[type=range]::-webkit-slider-runnable-track { height:5px; background:transparent; border-radius:999px; }
+.flux-dual-range input[type=range]::-moz-range-track { height:5px; background:transparent; border:0; }
+.flux-dual-range input[type=range]::-webkit-slider-thumb { appearance:none; -webkit-appearance:none; pointer-events:auto; width:20px; height:20px; margin-top:-7.5px; border-radius:50%; background:#a5b4fc; border:2px solid #eef2ff; box-shadow:0 0 0 2px #4338ca; cursor:grab; }
+.flux-dual-range input[type=range]::-moz-range-thumb { pointer-events:auto; width:20px; height:20px; border-radius:50%; background:#a5b4fc; border:2px solid #eef2ff; box-shadow:0 0 0 2px #4338ca; cursor:grab; }
+#fluxBeltMin { z-index:3; }
+#fluxBeltMax { z-index:2; }
+#fluxBeltMin::-webkit-slider-thumb { position:relative; z-index:4; }
+#fluxBeltMax::-webkit-slider-thumb { position:relative; z-index:3; }
+.flux-single { --p:0; display:block; width:100%; height:2rem; margin:0; background:transparent; appearance:none; -webkit-appearance:none; cursor:pointer; }
+.flux-single::-webkit-slider-runnable-track { height:5px; border-radius:999px; background:linear-gradient(90deg,#818cf8 calc(10px + (100% - 20px) * var(--p)),#334155 calc(10px + (100% - 20px) * var(--p))); }
+.flux-single::-moz-range-track { height:5px; border:0; border-radius:999px; background:linear-gradient(90deg,#818cf8 calc(10px + (100% - 20px) * var(--p)),#334155 calc(10px + (100% - 20px) * var(--p))); }
+.flux-single::-webkit-slider-thumb { appearance:none; -webkit-appearance:none; width:20px; height:20px; margin-top:-7.5px; border-radius:50%; background:#a5b4fc; border:2px solid #eef2ff; box-shadow:0 0 0 2px #4338ca; cursor:grab; }
+.flux-single::-moz-range-thumb { width:20px; height:20px; border-radius:50%; background:#a5b4fc; border:2px solid #eef2ff; box-shadow:0 0 0 2px #4338ca; cursor:grab; }
+.flux-slider-value { font-size:.875rem; font-weight:700; color:#e0e7ff; font-variant-numeric:tabular-nums; }
 </style>
 <style id="comparison-v5-colors">
 .comparison-player-blue{color:#60a5fa!important}.comparison-player-green{color:#4ade80!important}.comparison-player-yellow{color:#fde047!important}
@@ -519,6 +542,10 @@ html:not([data-theme="light"]) .ach-card .h-1\.5.bg-slate-800 {
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 pb-12">
 <div id="initialLoadingOverlay" aria-live="polite" aria-label="Loading data"><div class="initial-loading-content"><div class="initial-loading-spinner" aria-hidden="true"></div><div class="initial-loading-text">Loading</div></div></div>
+<script id="loading-overlay-failsafe">
+// Fail-safe: never leave the loading cover blocking the page indefinitely.
+window.setTimeout(() => { document.getElementById('initialLoadingOverlay')?.classList.add('is-hidden'); }, 18000);
+</script>
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
 <!-- Header -->
 <header class="site-header mb-6 border-b border-slate-800/90 pb-4 flex items-center justify-between gap-6">
@@ -842,55 +869,51 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
 <span class="text-lg font-semibold" style="color:#22c55e">⌁</span>
 <div>
 <h2 class="text-xl font-bold text-white">Flux Damage Simulator</h2>
-<p class="text-xs text-slate-500 mt-1">Flux Simulation From  Chaos Belt, Resonance, and SS Gloves.</p>
+<p class="text-xs text-slate-500 mt-1">Adjust your Flux settings to see possible results.</p>
 </div>
 </div>
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-<div class="grid grid-cols-2 gap-4">
-<div class="col-span-2 bg-slate-900/80 p-4 rounded-xl border border-slate-700">
-<div class="flex items-center justify-between">
+<div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-6">
+<div class="grid grid-cols-1 gap-4 flux-controls">
+<div class="flux-control-row">
+<div class="flex items-center justify-between gap-3 mb-2"><label class="block text-xs font-semibold text-slate-300 tracking-wider" for="fluxBeltMin">Flux Belt Range</label><span class="flux-slider-value" id="fluxBeltValue">100% – 280%</span></div>
+<div class="flux-dual-range" aria-label="Flux belt minimum and maximum range">
+<input class="flux-slider" id="fluxBeltMin" aria-label="Minimum flux belt" type="range" min="80" max="340" step="5" value="100" />
+<input class="flux-slider" id="fluxBeltMax" aria-label="Maximum flux belt" type="range" min="80" max="340" step="5" value="280" />
+</div>
+<div class="flex justify-between text-xs text-slate-500"><span>80%</span><span>340%</span></div>
+</div>
+<div class="flux-control-row">
+<div class="flex items-center justify-between gap-3 mb-2"><label class="block text-xs font-semibold text-slate-300 tracking-wider" for="fluxResoc">Reso Chance</label><span class="flux-slider-value" id="fluxResocValue">55%</span></div>
+<input class="flux-slider flux-single" id="fluxResoc" aria-label="Reso chance" type="range" min="0" max="100" step="1" value="55" />
+<div class="flex justify-between text-xs text-slate-500"><span>0%</span><span>100%</span></div>
+</div>
+<div class="flux-control-row">
+<div class="flex items-center justify-between gap-3 mb-2"><label class="block text-xs font-semibold text-slate-300 tracking-wider" for="fluxResod">Reso Damage</label><span class="flux-slider-value" id="fluxResodValue">80%</span></div>
+<input class="flux-slider flux-single" id="fluxResod" aria-label="Reso damage" type="range" min="0" max="400" step="5" value="80" />
+<div class="flex justify-between text-xs text-slate-500"><span>0%</span><span>400%</span></div>
+</div>
+<div class="flux-control-row flex items-center justify-between">
 <span class="text-sm font-medium text-slate-200">SS Gloves V4 Yet?</span>
 <label class="relative inline-flex items-center cursor-pointer">
 <input class="sr-only peer" id="fluxSsGlovesToggle" type="checkbox"/>
 <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
 </label>
 </div>
+<button class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-4 rounded-xl transition-all" id="fluxRunBtn" type="button">Run Simulation</button>
 </div>
-<div>
-<label class="block text-xs font-semibold text-slate-400 tracking-wider mb-1">Min Flux Belt (%)</label>
-<input class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500" id="fluxMinBelt" type="number" value="80"/>
-</div>
-<div>
-<label class="block text-xs font-semibold text-slate-400 tracking-wider mb-1">Max Flux Belt (%)</label>
-<input class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500" id="fluxMaxBelt" type="number" value="290"/>
-</div>
-<div>
-<label class="block text-xs font-semibold text-slate-400 tracking-wider mb-1">Reso Chance (%)</label>
-<input class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500" id="fluxResoc" step="0.1" type="number" value="55"/>
-</div>
-<div>
-<label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Reso Damage (%)</label>
-<input class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500" id="fluxResod" step="0.1" type="number" value="80.5"/>
-</div>
-<button class="col-span-2 w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-4 rounded-xl transition-all" id="fluxRunBtn" type="button">Run Simulation</button>
-</div>
+
 <div class="relative h-[360px] w-full">
 <canvas id="fluxChart"></canvas>
 </div>
-<div class="grid grid-cols-3 gap-4 text-center">
-<div>
-<span class="text-slate-400 text-xs font-medium block">Minimum Score</span>
-<span class="text-xl font-bold text-rose-400 mt-1 block" id="fluxStatMin">0.00</span>
 </div>
-<div>
-<span class="text-slate-400 text-xs font-medium block">Maximum Score</span>
-<span class="text-xl font-bold text-emerald-400 mt-1 block" id="fluxStatMax">+0.00</span>
-</div>
-<div>
-<span class="text-slate-400 text-xs font-medium block">Average Score</span>
-<span class="text-xl font-bold text-indigo-400 mt-1 block" id="fluxStatAvg">0.00</span>
-</div>
-</div>
+<hr class="my-6 border-slate-700/60">
+<div class="grid grid-cols-3 gap-x-3 gap-y-6 text-center" id="fluxStatsGrid">
+<div><span class="text-slate-400 text-xs font-medium">5% chance to get <span class="font-semibold" style="color:#ef4444">◎</span></span><span class="text-xl font-bold text-white mt-1 block" id="fluxChance5">—</span><span class="text-xs text-slate-500 block">medals</span></div>
+<div><span class="text-slate-400 text-xs font-medium">25% chance to get <span class="font-semibold" style="color:#3b82f6">◎</span></span><span class="text-xl font-bold text-white mt-1 block" id="fluxChance25">—</span><span class="text-xs text-slate-500 block">medals</span></div>
+<div><span class="text-slate-400 text-xs font-medium">50% chance to get <span class="font-semibold" style="color:#eab308">◎</span></span><span class="text-xl font-bold text-white mt-1 block" id="fluxChance50">—</span><span class="text-xs text-slate-500 block">medals</span></div>
+<div><span class="text-slate-400 text-xs font-medium">To reach top 50% <span class="font-semibold" style="color:#22c55e">↑</span></span><span class="text-xl font-bold text-white mt-1 block" id="fluxLmeAvg">—</span><span class="text-xs text-slate-500 block">LME attempts</span></div>
+<div><span class="text-slate-400 text-xs font-medium">To reach top 25% <span class="font-semibold" style="color:#ef4444">↑</span></span><span class="text-xl font-bold text-white mt-1 block" id="fluxLme15">—</span><span class="text-xs text-slate-500 block">LME attempts</span></div>
+<div><span class="text-slate-400 text-xs font-medium">To reach top 10% <span class="font-semibold" style="color:#3b82f6">↑</span></span><span class="text-xl font-bold text-white mt-1 block" id="fluxLme19">—</span><span class="text-xs text-slate-500 block">LME attempts</span></div>
 </div>
 </div>
 </section>
@@ -964,7 +987,18 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
         const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTA6FE45lCSDTQ2l6aE69j0DYprxFkqGkbo0V3CLvMjKuSf7qwSE39sXLYVyl3HVkM9pHhI1rmgbZ3y/pub?output=csv';
 
         async function loadCSVData() {
-            const response = await fetch(GOOGLE_SHEET_CSV_URL, { cache: 'no-store' });
+            // Prevent the app from hanging forever if the live Google Sheet is unreachable.
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+            let response;
+            try {
+                response = await fetch(GOOGLE_SHEET_CSV_URL, { cache: 'no-store', signal: controller.signal });
+            } catch (error) {
+                if (error && error.name === 'AbortError') throw new Error('Loading data timed out. Check your internet connection and reload.');
+                throw error;
+            } finally {
+                clearTimeout(timeoutId);
+            }
             if (!response.ok) throw new Error(`Unable to load Google Sheets CSV (${response.status})`);
             const text = await response.text();
             const rows = parseCSVText(text);
@@ -1544,7 +1578,7 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
                         if (globalIndex < baseIndex || globalIndex > baseIndex+n-1) return null;
                         return Math.max(0, intercept + slope*(globalIndex-baseIndex));
                     });
-                    chartDatasets.push({label:'(linear regression)',data:regressionData,borderColor:'#f59e0b',backgroundColor:'transparent',borderWidth:2,borderDash:[7,6],pointRadius:0,pointHoverRadius:0,fill:false,tension:0,spanGaps:false,order:0});
+                    chartDatasets.push({label:'linear regression',data:regressionData,borderColor:'#34d399',backgroundColor:'transparent',borderWidth:2,borderDash:[7,6],pointRadius:0,pointHoverRadius:0,fill:false,tension:0,spanGaps:false,order:0});
                 }
             }
             let instance = chartRefName === 'player' ? playerChartInstance : compareChartInstance;
@@ -2169,6 +2203,10 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
                 if (tabName === 'player' && playerChartInstance) playerChartInstance.resize();
                 if (tabName === 'clan') { if (clanChartInstance) clanChartInstance.resize(); if (clanScoreDistributionInstance) clanScoreDistributionInstance.resize(); }
                 if (tabName === 'compare' && compareChartInstance) compareChartInstance.resize();
+                if (tabName === 'flux') {
+                    if (fluxChartInstance) fluxChartInstance.resize();
+                    else runFluxSimulation();
+                }
             }, 0);
             if (tabName === 'leaderboard') updateLeaderboard();
             if (tabName === 'achievements' && typeof window.renderAchievements === 'function') {
@@ -2343,25 +2381,89 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
 
         [comparePlayer1, comparePlayer2, comparePlayer3].forEach(input => input.addEventListener('input', () => { try { localStorage.setItem('testaments-compare-selection-v1', JSON.stringify({players:[comparePlayer1.value,comparePlayer2.value,comparePlayer3.value]})); } catch(_) {} updateCompare(); }));
 
+        // One dual-handle Flux Belt range: both handles move in 5% steps.
+        const fluxBeltMin = document.getElementById('fluxBeltMin');
+        const fluxBeltMax = document.getElementById('fluxBeltMax');
+        function updateFluxSliderLabels() {
+            document.getElementById('fluxBeltValue').textContent = `${fluxBeltMin.value}% – ${fluxBeltMax.value}%`;
+            // Highlight only the selected interval between the two belt handles.
+            const track = fluxBeltMin.closest('.flux-dual-range');
+            if (track) {
+                const minPct = ((Number(fluxBeltMin.value) - 80) / (340 - 80)) * 100;
+                const maxPct = ((Number(fluxBeltMax.value) - 80) / (340 - 80)) * 100;
+                track.style.setProperty('--flux-range-start', (minPct / 100).toFixed(4));
+                track.style.setProperty('--flux-range-end', (maxPct / 100).toFixed(4));
+            }
+            ['fluxResoc','fluxResod'].forEach(id => { const el = document.getElementById(id); el.style.setProperty('--p', ((el.value - el.min) / (el.max - el.min)).toFixed(4)); });
+            document.getElementById('fluxResocValue').textContent = `${Number(document.getElementById('fluxResoc').value).toFixed(0)}%`;
+            document.getElementById('fluxResodValue').textContent = `${Number(document.getElementById('fluxResod').value).toFixed(0)}%`;
+        }
+        function handleFluxBeltChange(changed) {
+            if (Number(fluxBeltMin.value) > Number(fluxBeltMax.value)) {
+                if (changed === fluxBeltMin) fluxBeltMax.value = fluxBeltMin.value;
+                else fluxBeltMin.value = fluxBeltMax.value;
+            }
+            updateFluxSliderLabels();
+            saveFluxSettings();
+            runFluxSimulation();
+        }
+        fluxBeltMin.addEventListener('input', () => handleFluxBeltChange(fluxBeltMin));
+        fluxBeltMax.addEventListener('input', () => handleFluxBeltChange(fluxBeltMax));
+        ['fluxResoc','fluxResod'].forEach(id => document.getElementById(id).addEventListener('input', () => { updateFluxSliderLabels(); saveFluxSettings(); runFluxSimulation(); }));
+        updateFluxSliderLabels();
         // FLUX CALCULATOR: formula preserved from the supplied Flux source.
         let fluxChartInstance = null;
+        let fluxLastValues = [];
+        let fluxLastMean = 0;
+        let fluxLastSd = 0;
         function fluxRandomInt(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
-
+        function fluxNormalCdf(x) {
+            // Abramowitz-Stegun approximation to the standard normal CDF.
+            const z = Math.abs(x), t = 1 / (1 + 0.2316419 * z);
+            const d = 0.3989422804014327 * Math.exp(-z * z / 2);
+            const p = 1 - d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+            return x >= 0 ? p : 1 - p;
+        }
+        function fluxInvNorm(p) {
+            // Peter Acklam's inverse-normal approximation.
+            if (p <= 0 || p >= 1) return NaN;
+            const a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239];
+            const b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01];
+            const c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783];
+            const d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996, 3.754408661907416];
+            const plow = 0.02425, phigh = 1 - plow;
+            let q, r;
+            if (p < plow) {
+                q = Math.sqrt(-2 * Math.log(p));
+                return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+            }
+            if (p > phigh) {
+                q = Math.sqrt(-2 * Math.log(1-p));
+                return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+            }
+            q = p - 0.5; r = q*q;
+            return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q / (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+        }
+        function fluxQuantile(sorted, p) {
+            const index = (sorted.length - 1) * p, lo = Math.floor(index), hi = Math.ceil(index);
+            return sorted[lo] + (sorted[hi] - sorted[lo]) * (index - lo);
+        }
         function runFluxSimulation() {
-            const min = parseFloat(document.getElementById('fluxMinBelt').value);
-            const max = parseFloat(document.getElementById('fluxMaxBelt').value);
+            const min = Number(document.getElementById('fluxBeltMin').value);
+            const max = Number(document.getElementById('fluxBeltMax').value);
             const resoc = parseFloat(document.getElementById('fluxResoc').value);
             const resod = parseFloat(document.getElementById('fluxResod').value);
             const glove = document.getElementById('fluxSsGlovesToggle').checked ? 2.3 : 2.0;
-            const n = 100;
-
-            if ([min,max,resoc,resod].some(Number.isNaN) || min > max) return;
+            // More samples make the distribution and tail probabilities less noisy than the old 100-point line plot.
+            const n = 5000;
+            if ([min,max,resoc,resod].some(Number.isNaN) || min > max || min < 80 || max > 340 || resoc < 0 || resoc > 100 || resod < 0 || resod > 400 || Math.abs(resoc * 2 - Math.round(resoc * 2)) > 1e-8 || Math.abs(resod * 2 - Math.round(resod * 2)) > 1e-8) return;
 
             const gloves = 0.5 + glove / 2;
             const resox = (resoc * resod * 4) / 50000 + 1;
             const mid = ((min + max) * gloves * resox) / 2;
+            if (!Number.isFinite(mid) || mid <= 0) return;
             const Ave = [];
 
             for (let j = 0; j < n; j++) {
@@ -2377,53 +2479,110 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
                 Ave.push((100 * sum) / (180 * mid) - 100);
             }
 
-            const avg = Ave.reduce((a,b) => a+b,0) / Ave.length;
-            const testamentValues = Ave.map(v => v * 2);
-            document.getElementById('fluxStatAvg').textContent = `${(avg * 2).toFixed(2)}`;
-            document.getElementById('fluxStatMin').textContent = `${Math.min(...testamentValues).toFixed(2)}`;
-            document.getElementById('fluxStatMax').textContent = `+${Math.max(...testamentValues).toFixed(2)}`;
+            const values = Ave.map(v => v * 2);
+            const sorted = [...values].sort((a,b) => a-b);
+            const avg = values.reduce((a,b) => a+b,0) / values.length;
+            const variance = values.reduce((sum,v)=>sum+(v-avg)**2,0) / (values.length-1);
+            const sd = Math.sqrt(variance);
+            const p05 = fluxQuantile(sorted, 0.05), p95 = fluxQuantile(sorted, 0.95);
+            // These summary fields were removed from the UI; update them only if present.
+            const fluxStatMin = document.getElementById('fluxStatMin');
+            const fluxStatMax = document.getElementById('fluxStatMax');
+            const fluxStatAvg = document.getElementById('fluxStatAvg');
+            if (fluxStatMin) fluxStatMin.textContent = p05.toFixed(2);
+            if (fluxStatMax) fluxStatMax.textContent = `+${p95.toFixed(2)}`;
+            if (fluxStatAvg) fluxStatAvg.textContent = `${avg >= 0 ? '+' : ''}${avg.toFixed(2)}`;
+            fluxLastValues = values;
+            fluxLastMean = avg;
+            fluxLastSd = sd;
+            fluxUpdateProbabilityPanel();
 
-
+            // Build an empirical histogram and overlay a fitted normal curve for comparison.
+            const minX = Math.min(-30, Math.floor(sorted[0] / 5) * 5);
+            const maxX = Math.max(30, Math.ceil(sorted[sorted.length-1] / 5) * 5);
+            const binWidth = 2;
+            const binCount = Math.ceil((maxX-minX)/binWidth);
+            const labels = [], counts = Array(binCount).fill(0);
+            for (let i=0;i<binCount;i++) labels.push((minX+(i+0.5)*binWidth).toFixed(0));
+            for (const v of values) {
+                let idx = Math.floor((v-minX)/binWidth);
+                if (idx >= 0 && idx < binCount) counts[idx]++;
+            }
+            const normal = labels.map(label => {
+                const x = parseFloat(label);
+                if (!sd) return 0;
+                const density = Math.exp(-0.5*((x-avg)/sd)**2) / (sd*Math.sqrt(2*Math.PI));
+                return density * n * binWidth;
+            });
             if (fluxChartInstance) fluxChartInstance.destroy();
             fluxChartInstance = new Chart(document.getElementById('fluxChart').getContext('2d'), {
-                type: 'line',
+                type: 'bar',
                 data: {
-                    labels: Array.from({length:n}, (_,i)=>i+1),
-                    datasets: [{
-                        label: 'Flux of an LME ',
-                        data: testamentValues,
-                        borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        borderWidth: 2,
-                        pointRadius: 2,
-                        pointHoverRadius: 5,
-                        fill: true,
-                        tension: 0.2
-                    }]
+                    labels,
+                    datasets: [
+                        { type:'bar', label:'Observed outcomes', data:counts, backgroundColor:'rgba(129,140,248,0.45)', borderColor:'#818cf8', borderWidth:1, barPercentage:1, categoryPercentage:1 },
+                        { type:'line', label:'Fitted bell curve', data:normal, borderColor:'#34d399', backgroundColor:'rgba(52,211,153,0.08)', borderWidth:2, pointRadius:0, tension:0.25, fill:false }
+                    ]
                 },
                 options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: {
-                        legend: { labels: { color:'#94a3b8', font:{family:'Inter'} } },
-                        tooltip: { callbacks: { label: c => ` Damage of an LME (%): ${c.parsed.y.toFixed(2)}` } }
+                    responsive:true, maintainAspectRatio:false,
+                    interaction:{mode:'index',intersect:false},
+                    plugins:{
+                        legend:{labels:{color:'#94a3b8',font:{family:'Inter'}}},
+                        tooltip:{callbacks:{title:items=>`Flux change: ${items[0].label} medals`,label:c=>`${c.dataset.label}: ${c.parsed.y.toFixed(1)}`}}
                     },
-                    scales: {
-                        x: {
-                            title: { display:true, text:'Number of LME Attempt', color:'#94a3b8', font:{weight:'500',family:'Inter'} },
-                            grid:{color:'rgba(51,65,85,0.4)'}, ticks:{color:'#64748b'}
-                        },
-                        y: {
-                            title:{display:true,text:'Flux From Baseline',color:'#94a3b8',font:{weight:'500',family:'Inter'}},
-                            grid:{color:'rgba(51,65,85,0.4)'}, ticks:{color:'#64748b'}
-                        }
+                    scales:{
+                        x:{title:{display:true,text:'Flux change per run (assuming Flux points equal medals)',color:'#94a3b8'},grid:{color:'rgba(51,65,85,0.25)'},ticks:{color:'#64748b',maxTicksLimit:15}},
+                        y:{title:{display:true,text:'Number of simulations',color:'#94a3b8'},beginAtZero:true,grid:{color:'rgba(51,65,85,0.35)'},ticks:{color:'#64748b'}}
                     }
                 }
             });
         }
 
-        function saveFluxSettings(){ try { localStorage.setItem('testaments-flux-settings-v1', JSON.stringify({gloves:document.getElementById('fluxSsGlovesToggle').checked,min:document.getElementById('fluxMinBelt').value,max:document.getElementById('fluxMaxBelt').value,resoc:document.getElementById('fluxResoc').value,resod:document.getElementById('fluxResod').value})); } catch(_) {} }
+        function fluxUpdateProbabilityPanel() {
+            if (!fluxLastValues.length) return;
+            const min = Number(document.getElementById('fluxBeltMin').value);
+            const max = Number(document.getElementById('fluxBeltMax').value);
+            const resoc = parseFloat(document.getElementById('fluxResoc').value);
+            const resod = parseFloat(document.getElementById('fluxResod').value);
+            const glove = document.getElementById('fluxSsGlovesToggle').checked ? 2.3 : 2.0;
+            const sorted = [...fluxLastValues].sort((a,b)=>a-b);
+            const n = sorted.length;
+            // Show the cutoff magnitude in the tails: only this percentage of runs land beyond +/- X.
+            [5,25,50].forEach(percent => {
+                const tail = percent / 200;
+                const low = fluxQuantile(sorted, tail);
+                const high = fluxQuantile(sorted, 1-tail);
+                const magnitude = Math.max(Math.abs(low), Math.abs(high));
+                const node = document.getElementById(`fluxChance${percent}`);
+                if (node) node.textContent = `±${magnitude.toFixed(1)}`;
+            });
+            // Estimate LME counts from individual damage rolls, not the 180-hit aggregate Flux score.
+            // Targets are 1.0x, 1.5x and 1.9x the average individual damage roll.
+            // The belt's 80–340 values are the damage range; Reso and gloves modify individual hits.
+            const lmeSamples = 120000;
+            const lmeDamage = [];
+            let buffUntil = 0;
+            for (let i = 0; i < lmeSamples; i++) {
+                const phase = i % 20;
+                if (i % 5 === 0 && Math.random() < resoc / 100) buffUntil = i + 4;
+                let damage = fluxRandomInt(min, max);
+                if (i < buffUntil) damage *= 1 + resod / 100;
+                if (phase < 10) damage *= glove;
+                lmeDamage.push(damage);
+            }
+            const averageDamage = lmeDamage.reduce((a,b)=>a+b,0) / lmeDamage.length;
+            const targets = [averageDamage, averageDamage * 1.5, averageDamage * 1.9];
+            const ids = ['fluxLmeAvg','fluxLme15','fluxLme19'];
+            targets.forEach((target, idx) => {
+                const probability = lmeDamage.filter(damage => damage > target).length / lmeDamage.length;
+                const el = document.getElementById(ids[idx]);
+                if (el) el.textContent = probability > 0 ? Math.ceil(1 / probability).toLocaleString('en-US') : 'None';
+            });
+        }
+        function saveFluxSettings(){ try { localStorage.setItem('testaments-flux-settings-v1', JSON.stringify({gloves:document.getElementById('fluxSsGlovesToggle').checked,min:document.getElementById('fluxBeltMin').value,max:document.getElementById('fluxBeltMax').value,resoc:document.getElementById('fluxResoc').value,resod:document.getElementById('fluxResod').value})); } catch(_) {} }
         document.getElementById('fluxRunBtn').addEventListener('click', () => { saveFluxSettings(); runFluxSimulation(); });
-        ['fluxSsGlovesToggle','fluxMinBelt','fluxMaxBelt','fluxResoc','fluxResod'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{saveFluxSettings();runFluxSimulation();}));
+        document.getElementById('fluxSsGlovesToggle').addEventListener('change',()=>{saveFluxSettings();runFluxSimulation();});
 
         // Forecast bubble is independent from Player / Compare charts to prevent chart overlap.
         let forecastChartInstance = null;
@@ -2691,18 +2850,31 @@ html[data-theme="light"] .profile-edit-panel{border-color:#cbd5e1;}
             updateLeaderboard();
             renderClanScoreDistribution();
             renderClanForecast();
+            // The primary dataset and charts are ready now. Hide the global overlay
+            // before optional widgets (Flux/forecast) run, since an unrelated error
+            // in those widgets must not leave the whole page covered by Loading.
+            requestAnimationFrame(() => document.getElementById('initialLoadingOverlay')?.classList.add('is-hidden'));
             // Restore Flux controls before the first simulation.
             try {
               const savedFlux = JSON.parse(localStorage.getItem('testaments-flux-settings-v1') || 'null');
               if (savedFlux) {
-                const fields = {fluxSsGlovesToggle:'gloves',fluxMinBelt:'min',fluxMaxBelt:'max',fluxResoc:'resoc',fluxResod:'resod'};
-                Object.entries(fields).forEach(([id,key])=>{ const el=document.getElementById(id); if(el && savedFlux[key] !== undefined) { if(el.type==='checkbox') el.checked=!!savedFlux[key]; else el.value=savedFlux[key]; } });
+                // Migrate older saved single-interval settings if present.
+                if (savedFlux.belt) {
+                  const oldRange = String(savedFlux.belt).split(',').map(Number);
+                  if (oldRange.length === 2) { savedFlux.min = oldRange[0]; savedFlux.max = oldRange[1]; }
+                }
+                const minVal = Number(savedFlux.min), maxVal = Number(savedFlux.max);
+                if (Number.isFinite(minVal)) fluxBeltMin.value = Math.max(80, Math.min(340, 80 + Math.round((minVal - 80) / 5) * 5));
+                if (Number.isFinite(maxVal)) fluxBeltMax.value = Math.max(80, Math.min(340, 80 + Math.round((maxVal - 80) / 5) * 5));
+                if (Number(fluxBeltMin.value) > Number(fluxBeltMax.value)) fluxBeltMin.value = fluxBeltMax.value;
+                if (savedFlux.resoc !== undefined) document.getElementById('fluxResoc').value = savedFlux.resoc;
+                if (savedFlux.resod !== undefined) document.getElementById('fluxResod').value = savedFlux.resod;
+                if (savedFlux.gloves !== undefined) document.getElementById('fluxSsGlovesToggle').checked = !!savedFlux.gloves;
               }
             } catch(_) {}
+            updateFluxSliderLabels();
             runFluxSimulation();
             renderForecast();
-            // CSV is loaded and all initial UI/charts are ready: stop the spinner.
-            requestAnimationFrame(() => document.getElementById('initialLoadingOverlay')?.classList.add('is-hidden'));
         });
 
         // ACHIEVEMENT SYSTEM — current metric thresholds, linked to Player Bubble selection.
@@ -3083,6 +3255,53 @@ html[data-theme="light"] .ach-card .ach-progress-track{background:#E2E8F0!import
 @media(max-width:420px){.score-dist-label{width:88px;flex-basis:88px;font-size:11px}.score-dist-row{gap:8px}}
 </style>
 
+
+
+<style id="mobile-header-overflow-fix">
+/* Keep the desktop header unchanged; stack and wrap navigation on narrow screens. */
+@media (max-width: 640px) {
+  .site-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: .85rem !important;
+  }
+  .site-brand {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    max-width: 100%;
+    white-space: normal !important;
+  }
+  .site-brand > div:nth-child(2) { min-width: 0; }
+  .site-brand-title, .site-brand-subtitle {
+    max-width: 100%;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+  .site-nav {
+    display: flex !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 0 1 auto !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+    gap: .35rem !important;
+    box-sizing: border-box;
+  }
+  .site-nav .tab-btn {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    max-width: 100%;
+    padding: .5rem .65rem !important;
+    font-size: .82rem !important;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 360px) {
+  .site-nav .tab-btn { padding: .45rem .5rem !important; font-size: .76rem !important; }
+}
+</style>
 
 </body>
 </html>
