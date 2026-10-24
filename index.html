@@ -6,6 +6,8 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <link rel="icon" type="image/png" href="assets/logo.png"/>
 <link rel="apple-touch-icon" href="assets/logo.png"/>
+<link rel="manifest" href="manifest.webmanifest"/>
+<meta name="theme-color" content="#0f172a"/>
 <title>Tancredi Clan - Testaments Visualizer</title>
 <script>
 /* Theme bootstrap: apply the saved theme before first paint (default = dark, the original look). */
@@ -629,6 +631,11 @@ html[data-theme="light"] #comparisonBody tr{background:#fff!important;border-bot
 html[data-theme="light"] #comparisonBody tr:nth-child(even){background:var(--c-slate-50)!important}
 html[data-theme="light"] #comparisonBody tr:hover{background:var(--c-slate-100)!important;filter:none}
 </style>
+<style id="v8-style">
+/* "Download app" hint (shown only when the browser cannot open its install prompt itself). */
+.install-hint{margin:0;padding:8px 12px 12px;font-size:.75rem;line-height:1.4;color:var(--c-text-2-dark)}
+html[data-theme="light"] .install-hint{color:var(--c-slate-600)}
+</style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 pb-12">
 <div id="initialLoadingOverlay" aria-live="polite" aria-label="Loading data"><div class="initial-loading-content"><div class="initial-loading-spinner" aria-hidden="true"></div><div class="initial-loading-text">Loading</div></div></div>
@@ -662,6 +669,7 @@ window.setTimeout(() => { document.getElementById('initialLoadingOverlay')?.clas
 <button class="nav-menu-item" id="menuFlux" type="button"><span class="menu-icon" style="color:#22c55e"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>Flux</button>
 <div class="nav-menu-divider"></div>
 <button id="shareLinkBtn" type="button" aria-label="Copy link to this view" title="Copy link to this view" class="nav-menu-item"><span class="menu-icon" style="color:#94a3b8"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span><span id="shareLinkLabel">Share</span></button>
+<button id="installAppBtn" type="button" class="nav-menu-item"><span class="menu-icon" style="color:#818cf8"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span><span id="installAppLabel">Download app</span></button><p id="installHint" class="install-hint" hidden></p>
 </div>
 </div>
 </header>
@@ -4605,5 +4613,34 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
 </script>
 
 <style id="flux-trim">#fluxLive,.flux-actions-sub,#fluxBaselineNote{display:none!important}</style>
+<script id="pwa-js">
+(function(){
+  'use strict';
+  var btn=document.getElementById('installAppBtn'), label=document.getElementById('installAppLabel'), hint=document.getElementById('installHint');
+  var standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+  if(btn&&standalone) btn.style.display='none';          /* already running as the installed app */
+  var deferred=null;
+  window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferred=e; });
+  window.addEventListener('appinstalled',function(){ deferred=null; if(btn) btn.style.display='none'; if(hint) hint.hidden=true; });
+  var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  if(btn) btn.addEventListener('click',function(){
+    if(deferred){
+      var p=deferred; deferred=null; p.prompt();
+      p.userChoice.then(function(c){ if(label&&c&&c.outcome==='accepted'){ label.textContent='Installing\u2026'; } }).catch(function(){});
+      return;
+    }
+    if(hint){
+      hint.textContent=isIOS
+        ? 'On iPhone or iPad: tap the Share button in Safari, then \u201cAdd to Home Screen\u201d.'
+        : 'Open your browser menu and choose \u201cInstall app\u201d or \u201cAdd to Home screen\u201d.';
+      hint.hidden=!hint.hidden;
+    }
+  });
+  /* Offline support: the service worker lives next to this page (sw.js). */
+  if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
+    window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+  }
+})();
+</script>
 </body>
 </html>
