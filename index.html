@@ -689,7 +689,7 @@ window.setTimeout(() => { document.getElementById('initialLoadingOverlay')?.clas
   <button type="button" id="editProfileButton" class="profile-edit-button" aria-expanded="false" aria-controls="profileEditPanel" title="Edit profile"><span aria-hidden="true"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></span><span>Edit</span></button>
 </div>
 <div id="profileEditPanel" class="profile-edit-panel hidden" role="dialog" aria-modal="true" aria-label="Edit remembered player profile">
-  <div id="profileRequiredNotice" class="profile-required-notice" hidden>
+  <div id="profileRequiredNotice" class="profile-required-notice">
     <span class="profile-required-text">Choose your nickname and an avatar</span>
     <span class="profile-required-steps"><span id="profileStepNickname" class="profile-step"><i aria-hidden="true"></i>Nickname</span><span id="profileStepAvatar" class="profile-step"><i aria-hidden="true"></i>Avatar</span></span>
   </div>
@@ -2522,7 +2522,7 @@ html[data-theme="light"] .profile-step.done{color:#15803d;border-color:#22c55e}
         function updateProfileGate(){
             const hasNick = !!selectedPlayer, hasAvatar = !!avatarStyles[selectedAvatar], complete = hasNick && hasAvatar;
             const notice = document.getElementById('profileRequiredNotice');
-            if(notice){ notice.hidden = complete; notice.style.display = complete ? 'none' : ''; }
+            if(notice){ notice.hidden = false; notice.style.display = ''; } // always visible
             document.getElementById('profileStepNickname')?.classList.toggle('done',hasNick);
             document.getElementById('profileStepAvatar')?.classList.toggle('done',hasAvatar);
             if(profileDoneButton){
