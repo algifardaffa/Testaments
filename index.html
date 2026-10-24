@@ -611,11 +611,7 @@ html[data-theme="light"] .score-dist-row.is-top .score-dist-fill{background:var(
 @media (min-width:641px) and (max-width:1279px){
   #leaderboardSection table{min-width:0!important}
   #leaderboardSection th,#leaderboardSection td{padding-left:8px!important;padding-right:8px!important}
-  #leaderboardSection .leaderboard-bar{display:none}
   #leaderboardSection .leaderboard-sort{min-width:0;white-space:normal;line-height:1.25}
-}
-@media (max-width:640px){
-  #leaderboardSection .leaderboard-bar{display:none}
 }
 </style>
 <style id="v7-style">
@@ -2526,7 +2522,7 @@ html[data-theme="light"] .profile-step.done{color:#15803d;border-color:#22c55e}
         function updateProfileGate(){
             const hasNick = !!selectedPlayer, hasAvatar = !!avatarStyles[selectedAvatar], complete = hasNick && hasAvatar;
             const notice = document.getElementById('profileRequiredNotice');
-            if(notice) notice.hidden = complete;
+            if(notice){ notice.hidden = complete; notice.style.display = complete ? 'none' : ''; }
             document.getElementById('profileStepNickname')?.classList.toggle('done',hasNick);
             document.getElementById('profileStepAvatar')?.classList.toggle('done',hasAvatar);
             if(profileDoneButton){
