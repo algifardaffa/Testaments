@@ -675,7 +675,7 @@ window.setTimeout(() => { document.getElementById('initialLoadingOverlay')?.clas
 <!-- PLAYER TAB -->
 <section class="tab-section active space-y-6" id="playerSection">
 <!-- Unified Player Profile + Visualization bubble -->
-<div class="player-main-bubble bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 shadow-xl">
+<div class="player-main-bubble bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 shadow-xl"><svg class="pw-wave" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="wgp" x1="0" x2="1"><stop offset="0" stop-color="#6366f1" stop-opacity="0"/><stop offset=".35" stop-color="#818cf8"/><stop offset=".7" stop-color="#a78bfa"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/></linearGradient><linearGradient id="wfp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6366f1" stop-opacity=".42"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/></linearGradient></defs><g class="w1"><path d="M0 36 Q150 -4 300 36 T600 36 T900 36 T1200 36 V120 H0Z" fill="url(#wfp)"/></g><g class="w2"><path d="M0 44 Q150 6 300 44 T600 44 T900 44 T1200 44 V120 H0Z" fill="url(#wfp)" opacity=".55"/></g><g class="w3"><path d="M0 34 Q150 -6 300 34 T600 34 T900 34 T1200 34" fill="none" stroke="url(#wgp)" stroke-width="2.5" stroke-linecap="round"/></g></svg>
 <div class="player-welcome-card flex items-center gap-4 mb-4">
   <button type="button" id="profileAvatarButton" class="profile-avatar-button empty" aria-label="No avatar selected" title="Profile avatar">
     <span id="profileAvatarPlaceholder" class="profile-avatar-placeholder" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
@@ -763,9 +763,31 @@ html[data-theme="light"] .profile-avatar-button.empty{background:#e2e9f6;border-
 html[data-theme="light"] .profile-required-text{color:var(--c-slate-700,#334155)}
 html[data-theme="light"] .profile-step{color:var(--c-slate-600,#475569);border-color:var(--c-slate-300,#cbd5e1)}
 html[data-theme="light"] .profile-step.done{color:#15803d;border-color:#22c55e}
+
+/* purple wave behind the player header + key numbers */
+.player-main-bubble{position:relative;isolation:isolate}
+.pw-wave{position:absolute;left:0;top:0;width:200%;height:60%;z-index:-1;pointer-events:none}
+.pw-wave g{transform-box:fill-box;transform-origin:0 0}
+.pw-wave .w1{animation:pwv 16s linear infinite}.pw-wave .w2{animation:pwv 24s linear infinite reverse}.pw-wave .w3{animation:pwv 11s linear infinite;filter:drop-shadow(0 0 6px #818cf8)}
+@keyframes pwv{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.pw-wave g{animation:none!important}}
+html[data-theme="light"] .pw-wave{opacity:.55}
+#playerHeroStats>div:first-child .text-xl{color:#fff!important}
+html[data-theme="light"] #playerHeroStats>div:first-child .text-xl{color:var(--c-slate-900,#0f172a)!important}
 </style>
 <!-- Level 1: key numbers -->
 <div class="hier-hero" id="playerHeroStats"><div id="playerAttrRank"></div><div id="playerAttrPeak"></div><div id="playerAttrAvgGrowth"></div></div>
+<script>
+(function(){var B=document.querySelector('.player-main-bubble'),H=document.getElementById('playerHeroStats');if(!B||!H)return;
+var W=B.querySelector('.pw-wave');
+function fit(){var n=B.querySelector('.player-welcome-card')||H,b=B.getBoundingClientRect(),h=H.getBoundingClientRect(),t=n.getBoundingClientRect();
+ if(!b.height||!h.height)return;var bottom=h.bottom-b.top,crest=t.top-b.top+4,ht=Math.max(80,(bottom-crest)/0.883);
+ W.style.height=ht+'px';W.style.top=(bottom-ht)+'px'}
+if(window.ResizeObserver){var ro=new ResizeObserver(fit);ro.observe(B);ro.observe(H)}
+new MutationObserver(fit).observe(H,{childList:true,subtree:true});
+addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})();
+</script>
+
 <section aria-live="polite" class="mt-4" id="playerInsights">
 <div class="flex items-center justify-between gap-2"><h3 class="text-sm font-bold text-white mb-3">Player Insights</h3><button type="button" id="playerCompareBtn" class="insights-toggle compare-shortcut" style="display:none">Compare with…</button></div>
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="playerInsightsList"></div>
