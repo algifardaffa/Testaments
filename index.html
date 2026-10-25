@@ -3408,10 +3408,15 @@ html[data-theme="light"] .profile-step.done{color:#15803d;border-color:#22c55e}
             {id:'persistence', name:'Relentless', category:'Consistency', desc:'Improve weekly.', metric:'positiveCount', targets:[20,35,50,65,80], unit:'positive intervals'}
           ];
           const CONSISTENCY_BEST_KEY = 'testaments-achievement-best-consistency-v1';
-          const ACHIEVEMENT_TIER_MEMORY_KEY = 'testaments-achievement-highest-tier-v1';
+          const ACHIEVEMENT_TIER_MEMORY_KEY = 'testaments-achievement-highest-tier-v2';
+          // Tier memory (once unlocked, stays unlocked) is tied to the current targets. When any target
+          // changes, the signature changes and tiers remembered under the OLD targets are discarded,
+          // so they can no longer sit "unlocked" below the new thresholds. The keep-forever rule is unchanged.
+          const ACHIEVEMENT_SIGNATURE = cfg.map(a => a.id + ':' + a.targets.join(',')).join('|');
+          try { localStorage.removeItem('testaments-achievement-highest-tier-v1'); } catch(_) {}
           function readConsistencyBests(){ try { return JSON.parse(localStorage.getItem(CONSISTENCY_BEST_KEY) || '{}') || {}; } catch(_) { return {}; } }
-          function readAchievementTierMemory(){ try { return JSON.parse(localStorage.getItem(ACHIEVEMENT_TIER_MEMORY_KEY) || '{}') || {}; } catch(_) { return {}; } }
-          function writeAchievementTierMemory(memory){ try { localStorage.setItem(ACHIEVEMENT_TIER_MEMORY_KEY, JSON.stringify(memory)); } catch(_) {} }
+          function readAchievementTierMemory(){ try { const saved = JSON.parse(localStorage.getItem(ACHIEVEMENT_TIER_MEMORY_KEY) || 'null'); return (saved && saved.sig === ACHIEVEMENT_SIGNATURE && saved.tiers && typeof saved.tiers === 'object') ? saved.tiers : {}; } catch(_) { return {}; } }
+function writeAchievementTierMemory(memory){ try { localStorage.setItem(ACHIEVEMENT_TIER_MEMORY_KEY, JSON.stringify({sig:ACHIEVEMENT_SIGNATURE, tiers:memory})); } catch(_) {} }
           function achievementMemoryKey(name, achievementId){ return `${String(name || '').trim().toLowerCase()}::${achievementId}`; }
           function evaluate(name, achievement) {
             if (!name) return {available:false, value:0};
