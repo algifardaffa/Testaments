@@ -2295,8 +2295,8 @@ html[data-theme="light"] .profile-step.done{color:#15803d;border-color:#22c55e}
             const latestIncreaseBounds = latestIncreaseValues.length ? getNonOutlierBounds(latestIncreaseValues) : { min: 0, max: 1 }; // Same robust bounds as Star Comparison
             latestIncreaseBounds.max = Math.max(latestIncreaseBounds.min + 1e-9, latestIncreaseBounds.max);
             const consistencyValues = ranking.map(p => Number(p.consistency)).filter(Number.isFinite);
-            const achievementMin = 10;
-            const achievementMax = 50;
+            const achievementMin = 0;
+            const achievementMax = 40;
             const consistencyMin = consistencyValues.length ? Math.min(...consistencyValues) : 0;
             const consistencyMax = consistencyValues.length ? Math.max(...consistencyValues) : 1;
             const maxima = Object.fromEntries(['score','growth','bigIncrease'].map(key => [key, Math.max(1, ...ranking.map(p => Math.abs(Number(p[key]) || 0)))]));
@@ -3396,16 +3396,16 @@ html[data-theme="light"] .profile-step.done{color:#15803d;border-color:#22c55e}
             return result;
           };
           const cfg = [
-            {id:'ranking', name:'Ascension', category:'Ranking', desc:'Climb the ranking.', metric:'bestRank', targets:[50,30,10,5,1], unit:'rank', rank:true},
-            {id:'collector', name:'Hoarder', category:'History', desc:'Do more LME.', metric:'totalLme', targets:[1,10,25,50,100], unit:'observations'},
-            {id:'peak', name:'Apex', category:'Apex', desc:'Raise your peak.', metric:'peak', targets:[500,1000,1500,2000,2500], unit:'Testaments'},
-            {id:'bigLeap', name:'Breakthrough', category:'Growth', desc:'Biggest gain in one week.', metric:'bigIncrease', targets:[50,100,150,200,250], unit:'Testaments'},
-            {id:'positiveGrowth', name:'Rising Force', category:'Growth', desc:'Raise your growth.', metric:'avgGrowth', targets:[15,30,45,60,75], unit:'Testaments per interval'},
-            {id:'growthStreak', name:'Momentum', category:'Growth', desc:'Longer rising streaks.', metric:'maxRun', targets:[1,3,5,7,9], unit:'consecutive intervals'},
-            {id:'rivalry', name:'Rival Slayer', category:'Ranking', desc:'Overtake more players.', metric:'overtakes', targets:[1,3,5,7,9], unit:'overtakes'},
-            {id:'consistency', name:'Unwavering', category:'Consistency', desc:'Steadier scores.', metric:'consistency', targets:[15,30,45,60,75], unit:'consistency score'},
-            {id:'longevity', name:'Endurance', category:'Longevity', desc:'Stay longer.', metric:'duration', targets:[7,30,90,180,365], unit:'days'},
-            {id:'persistence', name:'Relentless', category:'Consistency', desc:'Improve weekly.', metric:'positiveCount', targets:[10,20,30,40,50], unit:'positive intervals'}
+            {id:'ranking', name:'Ascension', category:'Ranking', desc:'Climb the ranking.', metric:'bestRank', targets:[15,10,5,3,1], unit:'rank', rank:true},
+            {id:'collector', name:'Hoarder', category:'History', desc:'Do more LME.', metric:'totalLme', targets:[10,25,50,75,100], unit:'observations'},
+            {id:'peak', name:'Apex', category:'Apex', desc:'Raise your peak.', metric:'peak', targets:[1500,2000,2500,3000,3500], unit:'Testaments'},
+            {id:'bigLeap', name:'Breakthrough', category:'Growth', desc:'Biggest gain in one week.', metric:'bigIncrease', targets:[150,250,350,450,500], unit:'Testaments'},
+            {id:'positiveGrowth', name:'Rising Force', category:'Growth', desc:'Raise your growth.', metric:'avgGrowth', targets:[30,40,50,60,75], unit:'Testaments per interval'},
+            {id:'growthStreak', name:'Momentum', category:'Growth', desc:'Longer rising streaks.', metric:'maxRun', targets:[5,10,15,20,25], unit:'consecutive intervals'},
+            {id:'rivalry', name:'Rival Slayer', category:'Ranking', desc:'Overtake more players.', metric:'overtakes', targets:[5,15,30,50,75], unit:'overtakes'},
+            {id:'consistency', name:'Unwavering', category:'Consistency', desc:'Steadier scores.', metric:'consistency', targets:[65,70,75,80,90], unit:'consistency score'},
+            {id:'longevity', name:'Endurance', category:'Longevity', desc:'Stay longer.', metric:'duration', targets:[90,180,365,540,730], unit:'days'},
+            {id:'persistence', name:'Relentless', category:'Consistency', desc:'Improve weekly.', metric:'positiveCount', targets:[20,35,50,65,80], unit:'positive intervals'}
           ];
           const CONSISTENCY_BEST_KEY = 'testaments-achievement-best-consistency-v1';
           const ACHIEVEMENT_TIER_MEMORY_KEY = 'testaments-achievement-highest-tier-v1';
