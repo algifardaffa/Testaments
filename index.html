@@ -698,6 +698,42 @@ html[data-theme="light"] .lb-chip-vertical .lb-chip-number{color:#0f172a}
 #fluxSection .flux-title-wave>.clan-page-wave{height:130px!important;top:-30px!important;z-index:0!important}
 #fluxSection .flux-title-wave>:not(.clan-page-wave){position:relative;z-index:1}
 </style>
+<style id="achievement-leaderboard-spacing-2026">
+/* Space the independent achievement cards away from the overview bubble. */
+#achievementsSection.active{gap:30px!important}
+#achievementGrid{margin-top:0!important}
+/* Leaderboard chips: exactly three compact, single-line text rows. */
+#leaderboardSummary .lb-chip.lb-chip-vertical{
+  display:grid!important;
+  grid-template-columns:28px minmax(0,1fr)!important;
+  align-items:center!important;
+  column-gap:9px!important;
+  padding:9px 10px!important;
+  height:auto!important;
+  min-height:0!important;
+  line-height:1.15!important;
+}
+#leaderboardSummary .lb-icon-tall{align-self:center!important;grid-row:auto!important}
+#leaderboardSummary .lb-icon-tall svg{width:23px!important;height:23px!important}
+#leaderboardSummary .lb-chip-lines{display:grid!important;grid-template-rows:15px 18px 20px;gap:1px!important;min-width:0}
+#leaderboardSummary .lb-chip-category,
+#leaderboardSummary .lb-chip-nickname,
+#leaderboardSummary .lb-chip-number{
+  display:block!important;white-space:nowrap!important;
+  overflow:hidden!important;text-overflow:ellipsis!important;
+  margin:0!important;padding:0!important;line-height:1.15!important;
+}
+#leaderboardSummary .lb-chip-category{font-size:11px!important}
+#leaderboardSummary .lb-chip-nickname{font-size:13px!important}
+#leaderboardSummary .lb-chip-number{font-size:15px!important}
+@media(max-width:640px){
+  #leaderboardSummary .lb-chip.lb-chip-vertical{grid-template-columns:18px minmax(0,1fr)!important;column-gap:4px!important;padding:7px 5px!important}
+  #leaderboardSummary .lb-icon-tall svg{width:16px!important;height:16px!important}
+  #leaderboardSummary .lb-chip-category{font-size:10px!important}
+  #leaderboardSummary .lb-chip-nickname{font-size:11px!important}
+  #leaderboardSummary .lb-chip-number{font-size:12px!important}
+}
+</style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 pb-12">
 <div id="initialLoadingOverlay" aria-live="polite" aria-label="Loading data"><div class="initial-loading-content"><div class="initial-loading-spinner" aria-hidden="true"></div><div class="initial-loading-text">Loading</div></div></div>
@@ -4910,12 +4946,12 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
    }
  }
  function run(){
-   for(const id of ['playerAttrRank','playerAttrPeak','playerAttrAvgGrowth','clanAttrRank','clanAttrPeak','clanAttrAvgGrowth'])formatHero(document.getElementById(id));
+   // Hero cards retain their original icon/label/value format.
    for(const id of ['playerInsightsList','comparisonInsightsList','clanInsightsList'])formatInsights(document.getElementById(id));
  }
  function init(){
    run();
-   const watched=['playerHeroStats','clanHeroStats','playerInsightsList','comparisonInsightsList','clanInsightsList'];
+   const watched=['playerInsightsList','comparisonInsightsList','clanInsightsList'];
    let queued=false;
    const observer=new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;run()})});
    for(const id of watched){const n=document.getElementById(id);if(n)observer.observe(n,{childList:true,subtree:true})}
