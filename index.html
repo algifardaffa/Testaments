@@ -654,6 +654,50 @@ html[data-theme="light"] .install-hint{color:var(--c-slate-600)}
 @media(prefers-reduced-motion:reduce){.clan-page-wave g{animation:none!important}}
 html[data-theme="light"] .clan-page-wave,html[data-theme="light"] .pw-wave{opacity:.8}
 </style>
+<style id="clan-layout-refinement-2026">
+/* Achievement summary is one large bubble above ten standalone mini bubbles. */
+#achievementsSection{display:none}
+#achievementsSection.active{display:flex;flex-direction:column;gap:16px}
+#achievementsSection .achievement-room-shell{flex:none}
+#achievementGrid{width:100%;margin:0;align-items:start}
+#achievementGrid .ach-card--open{grid-column:auto!important}
+#achievementGrid .ach-card{background:rgba(30,41,59,.45)!important;border:1px solid rgba(100,116,139,.38)!important;border-radius:16px!important;overflow:hidden;box-shadow:none!important}
+html[data-theme="light"] #achievementGrid .ach-card{background:#fff!important;border-color:#cbd5e1!important}
+@media(max-width:767px){#achievementGrid{grid-template-columns:minmax(0,1fr)!important}#achievementGrid .ach-card--open{grid-column:auto!important}}
+/* First Clan "Player" number must remain white, not purple. */
+#clanHeroStats>div:first-child .text-xl,
+#clanHeroStats>div:first-child .clan-stat-value{color:#f8fafc!important}
+html[data-theme="light"] #clanHeroStats>div:first-child .text-xl,
+html[data-theme="light"] #clanHeroStats>div:first-child .clan-stat-value{color:#0f172a!important}
+/* Icon occupies the height of two lines; text stacks to its right. */
+.clan-stat-two{display:flex!important;align-items:center!important;justify-content:center;gap:12px;text-align:left;min-width:0}
+.clan-stat-two .clan-stat-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 34px;height:44px;color:var(--stat-icon,#94a3b8)}
+.clan-stat-two .clan-stat-icon svg{width:26px;height:26px}
+.clan-stat-two .clan-stat-copy{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
+.clan-stat-two .clan-stat-label{font-size:12px;line-height:1.35;color:var(--c-slate-400)}
+.clan-stat-two .clan-stat-value{display:block!important;margin:0!important;line-height:1.2;text-align:left;font-size:clamp(16px,3vw,25px);font-weight:700;color:var(--c-slate-50)}
+html[data-theme="light"] .clan-stat-two .clan-stat-label{color:#475569}
+html[data-theme="light"] .clan-stat-two .clan-stat-value{color:#0f172a}
+/* Insights retain their original descriptions, with icon spanning both lines. */
+.clan-insight-two{display:grid!important;grid-template-columns:32px minmax(0,1fr);align-items:center;column-gap:10px}
+.clan-insight-two .clan-insight-icon{grid-row:1 / span 2;display:flex;align-items:center;justify-content:center;align-self:stretch}
+.clan-insight-two .clan-insight-icon svg{height:25px;width:25px}
+.clan-insight-two .clan-insight-title{grid-column:2;grid-row:1;line-height:1.25}
+.clan-insight-two .clan-insight-description{grid-column:2;grid-row:2;margin-top:4px!important;overflow-wrap:anywhere}
+/* Leaderboard insight: icon occupies three rows; category, nickname, and number. */
+.lb-summary .lb-chip-vertical{display:grid;grid-template-columns:38px minmax(0,1fr);align-items:center;gap:12px;min-width:0}
+.lb-chip-vertical .lb-icon-tall{display:flex;align-items:center;justify-content:center;grid-row:1 / span 3}
+.lb-chip-vertical .lb-icon-tall svg{width:26px;height:26px;margin:0}
+.lb-chip-vertical .lb-chip-lines{display:flex;flex-direction:column;gap:2px;min-width:0}
+.lb-chip-vertical .lb-chip-category{font-size:12px;color:var(--c-slate-400)}
+.lb-chip-vertical .lb-chip-nickname{font-size:14px;font-weight:700;overflow-wrap:anywhere}
+.lb-chip-vertical .lb-chip-number{font-size:16px;font-weight:700;color:var(--c-slate-100);font-variant-numeric:tabular-nums}
+html[data-theme="light"] .lb-chip-vertical .lb-chip-number{color:#0f172a}
+/* Flux wave is clipped ONLY to the heading and subheading, not the simulator inputs. */
+#fluxSection .flux-title-wave{position:relative!important;isolation:isolate;overflow:hidden;min-height:76px;padding:10px 12px 12px;border-radius:14px;margin:-10px -12px 8px}
+#fluxSection .flux-title-wave>.clan-page-wave{height:130px!important;top:-30px!important;z-index:0!important}
+#fluxSection .flux-title-wave>:not(.clan-page-wave){position:relative;z-index:1}
+</style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 pb-12">
 <div id="initialLoadingOverlay" aria-live="polite" aria-label="Loading data"><div class="initial-loading-content"><div class="initial-loading-spinner" aria-hidden="true"></div><div class="initial-loading-text">Loading</div></div></div>
@@ -1098,8 +1142,9 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
 </div>
 <div class="hidden" id="achievementOverviewStats"></div><div class="ach-hero hidden" id="achievementHero"></div><p class="hier-summary hidden" id="achievementNextUp" style="display:none!important"></p><div class="grid grid-cols-5 gap-2 mb-5" id="achievementStats"></div>
 <div class="ach-controls" id="achievementControls"></div>
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="achievementGrid"></div>
 </div>
+<!-- The ten achievement cards are independent siblings outside the summary bubble. -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="achievementGrid"></div>
 </section>
 <!-- LEADERBOARD TAB -->
 <section class="tab-section" id="leaderboardSection">
@@ -2396,14 +2441,16 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
             if (!box) return;
             const esc = v => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
             const fmtN = v => Number(v).toLocaleString('en-US', { maximumFractionDigits: 1 });
-            const chips = [];
-            const first = ranking.find(p => p.rank === 1), second = ranking.find(p => p.rank === 2);
-            if (first) chips.push(`<span class="lb-note-icon" style="color:#ef4444">${gi('trophy')}</span><span>Most medals: <b>${esc(first.name)}</b> · ${fmtN(first.score)}</span>`);
-            const gainer = ranking.filter(p => p.lastIncrease > 0).sort((a, b) => b.lastIncrease - a.lastIncrease)[0];
-            if (gainer) chips.push(`<span class="lb-note-icon" style="color:#3b82f6">${gi('trend-up')}</span><span>Biggest gain: <b>${esc(gainer.name)}</b> · +${fmtN(gainer.lastIncrease)}</span>`);
-            const climber = ranking.filter(p => p.rankDelta > 0).sort((a, b) => b.rankDelta - a.rankDelta)[0];
-            if (climber) chips.push(`<span class="lb-note-icon" style="color:#22c55e">${gi('arrow-up')}</span><span>Top climber: <b>${esc(climber.name)}</b> · ▲${climber.rankDelta}</span>`);
-            box.innerHTML = chips.map(c => `<div class="lb-chip">${c}</div>`).join('');
+            const items = [];
+            const first = ranking.find(p => p.rank === 1);
+            if (first) items.push(['Most medals',first.name,fmtN(first.score),'trophy','#ef4444']);
+            const gainer = ranking.filter(p => p.lastIncrease > 0).sort((a,b) => b.lastIncrease-a.lastIncrease)[0];
+            if (gainer) items.push(['Biggest gain',gainer.name,'+'+fmtN(gainer.lastIncrease),'trend-up','#3b82f6']);
+            const climber = ranking.filter(p => p.rankDelta > 0).sort((a,b) => b.rankDelta-a.rankDelta)[0];
+            if (climber) items.push(['Top climber',climber.name,'▲'+climber.rankDelta,'arrow-up','#22c55e']);
+            box.innerHTML = items.map(([category,nickname,value,icon,color]) =>
+                `<div class="lb-chip lb-chip-vertical"><span class="lb-note-icon lb-icon-tall" style="color:${color}">${gi(icon)}</span><div class="lb-chip-lines"><span class="lb-chip-category">${esc(category)}</span><b class="lb-chip-nickname">${esc(nickname)}</b><span class="lb-chip-number">${esc(value)}</span></div></div>`
+            ).join('');
         }
         document.querySelectorAll('.leaderboard-sort').forEach(btn => btn.addEventListener('click', () => {
             const key = btn.dataset.sort;
@@ -4777,6 +4824,13 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
      target.classList.add('clan-wave-host');
      target.insertAdjacentHTML('afterbegin',makeSvg());
    }
+   // Flux: the wave belongs ONLY to the simulator title/subtitle header.
+   const flux=document.getElementById('fluxSection');
+   const title=flux?.querySelector('.flux-help')?.parentElement?.parentElement;
+   if(title&&!title.querySelector(':scope > .clan-page-wave')){
+     title.classList.add('clan-wave-host','flux-title-wave');
+     title.insertAdjacentHTML('afterbegin',makeSvg());
+   }
  }
  function avatar(){
    const btn=document.getElementById('profileAvatarButton');
@@ -4810,6 +4864,61 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
    const button=document.getElementById('profileAvatarButton');
    if(button)new MutationObserver(recolor).observe(button,{attributes:true,attributeFilter:['class']});
    new MutationObserver(recolor).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+<script id="clan-stat-formatting-2026">
+(function(){
+ function formatHero(el){
+   if(!el || !el.firstElementChild || el.firstElementChild.classList.contains('clan-stat-two'))return;
+   const root=el.firstElementChild;
+   const label=root.querySelector('.text-xs');
+   const value=root.querySelector('.text-xl');
+   if(!label||!value)return;
+   const svg=label.querySelector('svg');
+   const iconHolder=svg?svg.parentElement:null;
+   if(!iconHolder)return;
+   const icon=iconHolder.cloneNode(true);
+   icon.className='clan-stat-icon';
+   const lab=label.cloneNode(true);
+   lab.querySelectorAll('svg').forEach(n=>n.remove());
+   if(lab.querySelector('span')){lab.querySelectorAll('span').forEach(n=>{if(!n.textContent.trim())n.remove()})}
+   lab.className='clan-stat-label';
+   const val=value.cloneNode(true);
+   val.className='clan-stat-value';
+   const copy=document.createElement('span');copy.className='clan-stat-copy';copy.append(lab,val);
+   root.replaceChildren(icon,copy);
+   root.classList.add('clan-stat-two');
+ }
+ function formatInsights(root){
+   if(!root)return;
+   for(const card of root.children){
+     if(card.classList.contains('clan-insight-two'))continue;
+     const heading=card.querySelector('.flex.items-center');
+     const desc=card.querySelector('p');
+     if(!heading||!desc)continue;
+     const spans=heading.querySelectorAll(':scope > span');
+     if(spans.length<2)continue;
+     spans[0].classList.add('clan-insight-icon');
+     spans[1].classList.add('clan-insight-title');
+     card.insertBefore(spans[0],heading);
+     card.insertBefore(spans[1],heading);
+     heading.remove();
+     desc.classList.add('clan-insight-description');
+     card.classList.add('clan-insight-two');
+   }
+ }
+ function run(){
+   for(const id of ['playerAttrRank','playerAttrPeak','playerAttrAvgGrowth','clanAttrRank','clanAttrPeak','clanAttrAvgGrowth'])formatHero(document.getElementById(id));
+   for(const id of ['playerInsightsList','comparisonInsightsList','clanInsightsList'])formatInsights(document.getElementById(id));
+ }
+ function init(){
+   run();
+   const watched=['playerHeroStats','clanHeroStats','playerInsightsList','comparisonInsightsList','clanInsightsList'];
+   let queued=false;
+   const observer=new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;run()})});
+   for(const id of watched){const n=document.getElementById(id);if(n)observer.observe(n,{childList:true,subtree:true})}
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
