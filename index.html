@@ -734,6 +734,14 @@ html[data-theme="light"] .lb-chip-vertical .lb-chip-number{color:#0f172a}
   #leaderboardSummary .lb-chip-number{font-size:12px!important}
 }
 </style>
+<style id="clan-v2-style">
+/* Achievement: clear space between the summary bubble and the cards. */
+#achievementsSection.active{gap:48px!important}
+/* Sound toggle sits next to the theme toggle. */
+.sound-toggle{display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:42px}.sound-toggle span{display:inline-flex}
+.site-brand{max-width:calc(100% - 185px)!important}
+@media(max-width:420px){.theme-label{display:none}.site-brand{max-width:calc(100% - 150px)!important}}
+</style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 pb-12">
 <div id="initialLoadingOverlay" aria-live="polite" aria-label="Loading data"><div class="initial-loading-content"><div class="initial-loading-spinner" aria-hidden="true"></div><div class="initial-loading-text">Loading</div></div></div>
@@ -755,8 +763,9 @@ window.setTimeout(() => { document.getElementById('initialLoadingOverlay')?.clas
 </div>
 <div class="header-actions">
 <button id="themeToggle" type="button" aria-label="Toggle light and dark mode" title="Toggle light and dark mode" class="px-3 py-2 rounded-xl border border-slate-700/70 bg-slate-900/80 text-slate-300 hover:text-white text-xs font-semibold transition-all">
-  <span class="theme-dark-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg> Light</span><span class="theme-light-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg> Dark</span>
+  <span class="theme-dark-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span class="theme-label"> Light</span></span><span class="theme-light-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg><span class="theme-label"> Dark</span></span>
 </button>
+<button id="soundToggle" type="button" aria-pressed="true" aria-label="Sound on" title="Sound on" class="sound-toggle px-3 py-2 rounded-xl border border-slate-700/70 bg-slate-900/80 text-slate-300 hover:text-white text-xs font-semibold transition-all"><span class="snd-on text-green-400"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></span><span class="snd-off text-red-400" style="display:none"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg></span></button>
 <button id="navMenuToggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="navMenuPanel" title="Navigation" class="nav-menu-toggle px-3 py-2 rounded-xl border border-slate-700/70 bg-slate-900/80 text-slate-300 hover:text-white transition-all"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
 <div id="navMenuPanel" class="nav-menu-panel" hidden>
 <button class="nav-menu-item" id="menuPlayer" type="button"><span class="menu-icon" style="color:#ef4444"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>Player</button>
@@ -4034,10 +4043,10 @@ html[data-theme="light"] .data-error{color:#9f1239;background:rgba(244,63,94,0.1
   .comparison-table-scroll table{min-width:0!important;width:100%;table-layout:fixed}
   .comparison-table-scroll th,.comparison-table-scroll td{padding:0.5rem 0.25rem!important;font-size:0.75rem;white-space:normal!important;word-break:break-word}
   .comparison-table-scroll th:first-child,.comparison-table-scroll td:first-child{width:31%}
-  #leaderboardSection th:nth-child(-n+2),#leaderboardSection td:nth-child(-n+2){position:sticky;z-index:2;background-color:#18233a}
-  #leaderboardSection th:nth-child(1),#leaderboardSection td:nth-child(1){left:0;min-width:3rem}
-  #leaderboardSection th:nth-child(2),#leaderboardSection td:nth-child(2){left:3rem;box-shadow:2px 0 0 rgba(100,116,139,0.3)}
-  html[data-theme="light"] #leaderboardSection th:nth-child(-n+2),html[data-theme="light"] #leaderboardSection td:nth-child(-n+2){background-color:#fff}
+  
+  
+  
+  
   .site-header{flex-wrap:wrap}
 }
 </style>
@@ -4957,6 +4966,52 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
    for(const id of watched){const n=document.getElementById(id);if(n)observer.observe(n,{childList:true,subtree:true})}
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+<script id="sound-js">
+(function(){
+  'use strict';
+  var KEY='sound-enabled',btn=document.getElementById('soundToggle'),ctx=null,last=0,on=true;
+  try{on=localStorage.getItem(KEY)!=='0'}catch(e){}
+  function paint(){
+    if(!btn)return;
+    btn.setAttribute('aria-pressed',on?'true':'false');
+    var t=on?'Sound on (tap to mute)':'Sound off (tap to unmute)';btn.title=t;btn.setAttribute('aria-label',t);
+    btn.querySelector('.snd-on').style.display=on?'':'none';btn.querySelector('.snd-off').style.display=on?'none':'';
+  }
+  function audio(){
+    if(!ctx){var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;ctx=new C();}
+    if(ctx.state==='suspended')ctx.resume();
+    return ctx;
+  }
+  function tick(){
+    if(!on)return;var now=Date.now();if(now-last<40)return;last=now;
+    var c=audio();if(!c)return;
+    var t=c.currentTime,o=c.createOscillator(),g=c.createGain();
+    o.type='sine';o.frequency.setValueAtTime(900,t);o.frequency.exponentialRampToValueAtTime(500,t+.05);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.12,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+.07);
+    o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.08);
+  }
+  var SEL='a[href],button,summary,select,[role="button"],[role="tab"],[role="option"],[role="switch"],input[type="checkbox"],input[type="radio"],input[type="range"],input[type="button"],input[type="submit"]';
+  function clickable(el){
+    for(var n=0;el&&el.nodeType===1&&el!==document.body&&n<6;n++,el=el.parentElement){
+      if(el.disabled||el.getAttribute('aria-disabled')==='true')return false;
+      if(el.matches(SEL))return true;
+      try{if(getComputedStyle(el).cursor==='pointer')return true}catch(e){}
+    }
+    return false;
+  }
+  /* Every real click or tap on something clickable plays the sound (scrolling does not). */
+  document.addEventListener('click',function(e){
+    if(!e.isTrusted)return;
+    if(e.target.closest&&e.target.closest('#soundToggle'))return;
+    if(clickable(e.target))tick();
+  },true);
+  if(btn)btn.addEventListener('click',function(){
+    on=!on;try{localStorage.setItem(KEY,on?'1':'0')}catch(e){}
+    paint();if(on)tick();
+  });
+  paint();
 })();
 </script>
 </body>
