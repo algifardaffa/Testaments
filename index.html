@@ -737,8 +737,10 @@ html[data-theme="light"] .lb-chip-vertical .lb-chip-number{color:#0f172a}
 <style id="clan-v2-style">
 /* Achievement: clear space between the summary bubble and the cards. */
 #achievementsSection.active{display:block!important;gap:0!important}
-#achievementsSection .achievement-room-shell{margin-bottom:48px!important}
-#achievementsSection #achievementGrid{margin-top:48px!important}
+#achievementsSection .achievement-room-shell{margin-bottom:24px!important}
+#achievementsSection #achievementGrid{margin-top:24px!important}
+/* An opened card is one wide bubble covering two normal cards (an earlier rule forced it back to one column). */
+@media(min-width:768px){#achievementsSection #achievementGrid .ach-card--open{grid-column:span 2!important}}
 /* Sound toggle sits next to the theme toggle. */
 .sound-toggle{display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:42px}.sound-toggle span{display:inline-flex}
 .site-brand{max-width:calc(100% - 185px)!important}
