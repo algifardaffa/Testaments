@@ -1003,7 +1003,7 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
 </div>
 <hr class="my-6 border-slate-700/60" id="playerScoreDistributionDivider">
 <div id="playerScoreDistributionBubble">
-<div class="mb-4"><h3 class="text-lg font-bold text-white">Score Distribution</h3><p class="text-sm text-slate-400 mt-1">Frequency by score range</p></div>
+<div class="mb-4"><h3 class="text-lg font-bold text-white">Score Distribution</h3></div>
 <div id="playerScoreDistributionBars" class="space-y-3"></div>
 </div>
 </div>
@@ -1060,7 +1060,7 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
 <!-- SCORE DISTRIBUTION: part of the Clan main container, separated by ONE horizontal divider (no own bubble) -->
 <hr class="my-6 border-slate-700/60" id="clanScoreDistributionDivider">
 <div id="clanScoreDistributionSection">
-<div class="mb-4"><h3 class="text-lg font-bold text-white">Score Distribution</h3><p class="text-sm text-slate-400 mt-1">Players by score range</p></div>
+<div class="mb-4"><h3 class="text-lg font-bold text-white">Score Distribution</h3></div>
 <div id="clanScoreDistributionBars" class="space-y-3"></div>
 </div>
 </div>
@@ -4580,8 +4580,6 @@ html[data-theme="light"] .dist-chip b{color:var(--c-indigo-700)}
       origPD.apply(this, arguments);
       try {
         var box = $('playerScoreDistributionBars'); if (!box) return;
-        var cap = $('playerDistCaption');
-        if (!cap) { cap = document.createElement('p'); cap.id = 'playerDistCaption'; cap.className = 'dist-caption'; box.insertAdjacentElement('afterend', cap); }
         var rows = Array.prototype.slice.call(box.querySelectorAll('.score-dist-row'));
         var counts = rows.map(function (r) { return Number(r.querySelector('.score-dist-count').textContent) || 0; });
         var total = counts.reduce(function (a, b) { return a + b; }, 0), max = Math.max.apply(null, counts.concat([0]));
@@ -4589,10 +4587,6 @@ html[data-theme="light"] .dist-chip b{color:var(--c-indigo-700)}
           r.classList.toggle('is-top', max > 0 && counts[i] === max);
           r.querySelector('.score-dist-count').title = total ? Math.round(counts[i] / total * 100) + '% of scores' : '';
         });
-        if (!total || !hasPlayerHistory(selectedPlayer)) { cap.style.display = 'none'; return; }
-        var top = counts.indexOf(max);
-        cap.style.display = '';
-        cap.textContent = 'Most common range: ' + rows[top].querySelector('.score-dist-label').textContent + ' (' + Math.round(max / total * 100) + '% of ' + total + ' scores).';
       } catch (e) {}
     };
   } catch (e) {}
