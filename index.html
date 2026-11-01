@@ -746,6 +746,24 @@ html[data-theme="light"] .lb-chip-vertical .lb-chip-number{color:#0f172a}
 .site-brand{max-width:calc(100% - 185px)!important}
 @media(max-width:420px){.theme-label{display:none}.site-brand{max-width:calc(100% - 150px)!important}}
 </style>
+<style id="dist-pie-style">
+/* Score Distribution as a full pie (no gaps). The legend rows stay tappable and use the same 7 colours as the Leaderboard metric bars. */
+.dist-layout{display:flex;align-items:center;gap:20px}
+.dist-pie{flex:0 0 auto;width:min(46%,220px);aspect-ratio:1/1;position:relative}
+.dist-pie canvas{display:block;width:100%!important;height:100%!important}
+.dist-layout>[id$="Bars"]{flex:1 1 0;min-width:0}
+.dist-pie-mode>.score-dist-row+.score-dist-row{margin-top:.35rem!important}
+.dist-pie-mode .score-dist-row{min-height:2.25rem}
+.dist-pie-mode .score-dist-track{display:none}
+.dist-pie-mode .score-dist-label{flex:1 1 auto;width:auto;display:flex;align-items:center;gap:10px;font-size:14px;color:var(--c-slate-200)}
+.dist-pie-mode .score-dist-label::before{content:"";flex:none;width:12px;height:12px;border-radius:50%;background:var(--pc,#8b83f6)}
+.dist-pie-mode .score-dist-count{flex:0 0 auto;width:auto;min-width:28px;font-size:14px;font-weight:700}
+html[data-theme="light"] .dist-pie-mode .score-dist-label{color:var(--c-slate-700)}
+.dist-layout+.dist-detail{margin-top:1rem}
+.dist-detail-title{flex:1 0 100%;font-size:.75rem;font-weight:700;color:var(--c-slate-300)}
+html[data-theme="light"] .dist-detail-title{color:var(--c-slate-700)}
+@media(max-width:420px){.dist-layout{gap:12px}.dist-pie-mode .score-dist-label,.dist-pie-mode .score-dist-count{font-size:13px}}
+</style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 pb-12">
 <div id="initialLoadingOverlay" aria-live="polite" aria-label="Loading data"><div class="initial-loading-content"><div class="initial-loading-spinner" aria-hidden="true"></div><div class="initial-loading-text">Loading</div></div></div>
@@ -2548,7 +2566,7 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
             window.scrollTo({ top: 0, behavior: 'smooth' });
             setTimeout(() => {
                 if (tabName === 'player' && playerChartInstance) playerChartInstance.resize();
-                if (tabName === 'clan') { if (clanChartInstance) clanChartInstance.resize(); if (clanScoreDistributionInstance) clanScoreDistributionInstance.resize(); }
+                if (tabName === 'clan') { if (clanChartInstance) clanChartInstance.resize(); document.querySelectorAll('.dist-pie canvas').forEach(function (cv) { var ch = typeof Chart !== 'undefined' && Chart.getChart && Chart.getChart(cv); if (ch) ch.resize(); }); }
                 if (tabName === 'compare' && compareChartInstance) compareChartInstance.resize();
                 if (tabName === 'flux') {
                     if (fluxChartInstance) fluxChartInstance.resize();
@@ -4570,7 +4588,8 @@ html[data-theme="light"] .dist-chip b{color:var(--c-indigo-700)}
       .sort(function (a, b) { return b.v - a.v; });
   }
   function closeDetail(box) {
-    box.querySelectorAll('.dist-detail').forEach(function (d) { d.remove(); });
+    var scope = box.closest('#clanScoreDistributionSection') || box;
+    scope.querySelectorAll('.dist-detail').forEach(function (d) { d.remove(); });
     box.querySelectorAll('.score-dist-row[aria-expanded="true"]').forEach(function (r) { r.setAttribute('aria-expanded', 'false'); });
   }
   function toggleDetail(box, row) {
@@ -4586,7 +4605,10 @@ html[data-theme="light"] .dist-chip b{color:var(--c-indigo-700)}
       if (x.v !== null) { var b = document.createElement('b'); b.textContent = Number(x.v).toLocaleString('en-US'); chip.appendChild(b); }
       d.appendChild(chip);
     });
-    row.insertAdjacentElement('afterend', d);
+    var title = document.createElement('div'); title.className = 'dist-detail-title';
+    title.textContent = row.querySelector('.score-dist-label').textContent + ' · ' + list.length + (list.length === 1 ? ' player' : ' players');
+    d.insertBefore(title, d.firstChild);
+    var layout = box.closest('.dist-layout'); (layout || row).insertAdjacentElement('afterend', d);
     row.setAttribute('aria-expanded', 'true');
   }
   var clanBox = $('clanScoreDistributionBars');
@@ -4608,7 +4630,7 @@ html[data-theme="light"] .dist-chip b{color:var(--c-indigo-700)}
           r.dataset.i = i; r.setAttribute('role', 'button'); r.setAttribute('tabindex', '0'); r.setAttribute('aria-expanded', 'false'); r.classList.add('is-tappable');
         });
         var hint = $('clanDistHint');
-        if (!hint) { hint = document.createElement('p'); hint.id = 'clanDistHint'; hint.className = 'dist-caption'; hint.textContent = 'Tap a range to see who is in it.'; box.insertAdjacentElement('afterend', hint); }
+        if (!hint) { hint = document.createElement('p'); hint.id = 'clanDistHint'; hint.className = 'dist-caption'; hint.textContent = 'Tap a slice or a range to see who is in it.'; box.insertAdjacentElement('afterend', hint); }
       } catch (e) {}
     };
   } catch (e) {}
@@ -5029,5 +5051,82 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
   paint();
 })();
 </script>
-</body>
+<script id="dist-pie-js">
+(function(){
+  'use strict';
+  /* Soft pastel palette sampled from the reference mockup (pink, sand, mint, sky, periwinkle, lavender, orchid).
+     Light theme uses deeper tones of the same hues so the slices stay readable on white. */
+  var PAL={
+    dark:['#f4aecc','#f4dca8','#a8e3c3','#9cd4fb','#80a4f6','#c2b0fa','#ecb3f6'],
+    light:['#e0709f','#d9a441','#4fb583','#4aa8e6','#5b7fe0','#8f73e6','#c46ddb']
+  };
+  function palette(){return document.documentElement.getAttribute('data-theme')==='light'?PAL.light:PAL.dark}
+  function rgb(h){var n=parseInt(h.slice(1),16);return[n>>16&255,n>>8&255,n&255]}
+  function lightFill(h){var c=rgb(h);return(0.299*c[0]+0.587*c[1]+0.114*c[2])>150}
+  /* Dimmed slices are mixed toward the card colour (opaque), so neighbouring slices never show a seam. */
+  function mix(h,bg,t){var a=rgb(h),b=rgb(bg),o=a.map(function(v,k){return Math.round(v*(1-t)+b[k]*t)});return'#'+o.map(function(v){return('0'+v.toString(16)).slice(-2)}).join('')}
+  function cardBg(){return document.documentElement.getAttribute('data-theme')==='light'?'#ffffff':'#1b2438'}
+  function drawPie(id){
+    var box=document.getElementById(id);if(!box||typeof Chart==='undefined')return;
+    var rows=[].slice.call(box.querySelectorAll('.score-dist-row'));if(!rows.length)return;
+    box.classList.add('dist-pie-mode');
+    var data=[],labels=[],cols=[],total=0;
+    rows.forEach(function(r,i){
+      var n=Number((r.querySelector('.score-dist-count')||{}).textContent)||0;
+      data.push(n);total+=n;labels.push((r.querySelector('.score-dist-label')||{}).textContent||'');
+      cols.push(palette()[i%7]);r.style.setProperty('--pc',cols[i]);
+    });
+    /* pie on the left, legend rows on the right */
+    var layout=box.parentNode.classList.contains('dist-layout')?box.parentNode:null,wrap=document.getElementById(id+'Pie');
+    if(!layout){layout=document.createElement('div');layout.className='dist-layout';box.parentNode.insertBefore(layout,box)}
+    if(!wrap){wrap=document.createElement('div');wrap.id=id+'Pie';wrap.className='dist-pie';wrap.innerHTML='<canvas aria-label="Score distribution pie chart" role="img"></canvas>'}
+    if(wrap.parentNode!==layout)layout.insertBefore(wrap,layout.firstChild);
+    if(box.parentNode!==layout)layout.appendChild(box);
+    var canvas=wrap.querySelector('canvas'),old=Chart.getChart(canvas);if(old)old.destroy();
+    wrap.style.display=total?'':'none';if(!total)return;
+    /* percentages are drawn inside the slices (hidden on very thin slices) */
+    var pctLabels={id:'pctLabels',afterDatasetsDraw:function(chart){
+      var ctx=chart.ctx;ctx.save();ctx.font='700 13px Inter, system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      chart.getDatasetMeta(0).data.forEach(function(arc,i){
+        var pct=Math.round(data[i]/total*100);if(!data[i]||pct<6)return;
+        var a=(arc.startAngle+arc.endAngle)/2,r=arc.outerRadius*0.62;
+        ctx.fillStyle=lightFill(cols[i])?'#1a2040':'#ffffff';ctx.fillText(pct+'%',arc.x+Math.cos(a)*r,arc.y+Math.sin(a)*r);
+      });ctx.restore();
+    }};
+    /* Full circle: no spacing, no offset, and each slice is outlined in its own colour so anti-aliasing leaves no hairline between slices. */
+    var chart=new Chart(canvas,{type:'pie',data:{labels:labels,datasets:[{data:data,backgroundColor:cols.slice(),borderColor:cols.slice(),borderWidth:1,spacing:0,offset:0,hoverOffset:0,borderRadius:0}]},
+      options:{responsive:true,maintainAspectRatio:true,aspectRatio:1,rotation:0,layout:{padding:0},animation:{duration:300},
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' '+c.label+': '+c.parsed+' ('+Math.round(c.parsed/total*100)+'%)'}}}},
+        onClick:function(e,els){if(els.length)rows[els[0].index].click()},
+        onHover:function(e,els){if(e.native&&e.native.target)e.native.target.style.cursor=els.length?'pointer':'default'}},plugins:[pctLabels]});
+    /* the opened range stays full colour, the other slices fade */
+    function sync(){
+      var sel=-1;rows.forEach(function(r,i){if(r.getAttribute('aria-expanded')==='true')sel=i});
+      var bg=cardBg(),paint=cols.map(function(c,i){return sel<0||i===sel?c:mix(c,bg,0.6)});
+      var ds=chart.data.datasets[0];ds.backgroundColor=paint;ds.borderColor=paint.slice();chart.update('none');
+    }
+    if(!box.dataset.pieSync){
+      box.dataset.pieSync='1';
+      box.addEventListener('click',function(){setTimeout(function(){var c=Chart.getChart(wrap.querySelector('canvas'));if(c&&c._pieSync)c._pieSync()},0)});
+      box.addEventListener('keydown',function(){setTimeout(function(){var c=Chart.getChart(wrap.querySelector('canvas'));if(c&&c._pieSync)c._pieSync()},0)});
+    }
+    chart._pieSync=sync;
+  }
+  function wrapFn(name,id){
+    var orig=window[name];if(typeof orig!=='function')return;
+    window[name]=function(){var r=orig.apply(this,arguments);drawPie(id);return r};
+  }
+  wrapFn('renderPlayerScoreDistribution','playerScoreDistributionBars');
+  wrapFn('renderClanScoreDistribution','clanScoreDistributionBars');
+  ['playerScoreDistributionBars','clanScoreDistributionBars'].forEach(drawPie);
+  /* repaint when the theme is switched, keeping the opened range highlighted */
+  new MutationObserver(function(){
+    if(typeof Chart==='undefined')return;
+    ['playerScoreDistributionBars','clanScoreDistributionBars'].forEach(function(id){
+      drawPie(id);var w=document.getElementById(id+'Pie'),cv=w&&w.querySelector('canvas'),c=cv&&Chart.getChart&&Chart.getChart(cv);
+      if(c&&c._pieSync)c._pieSync();
+    });
+  }).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+})();
+</script></body>
 </html>
