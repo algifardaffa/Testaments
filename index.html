@@ -1119,14 +1119,15 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
 <button class="px-3 py-2 rounded-lg text-xs font-semibold transition-all" id="compareRankModeBtn" type="button">
                                         Rank
                                     </button>
+<button class="px-3 py-2 rounded-lg text-xs font-semibold transition-all" id="compareForecastModeBtn" type="button" aria-pressed="false" title="Forecast">Forecast</button>
 </div>
-<div class="flex bg-slate-900/80 rounded-xl p-1 border border-slate-700/70">
+<div class="period-slot" id="comparePeriodSlot"><div id="compareRangeControls" class="flex bg-slate-900/80 rounded-xl p-1 border border-slate-700/70">
 <button class="px-3 py-2 rounded-lg text-xs font-semibold transition-all" id="compareRange3mBtn" type="button">
                                         3 months
                                     </button>
 <button class="px-3 py-2 rounded-lg text-xs font-semibold transition-all" id="compareRange1yBtn" type="button">1 year</button>
 <button class="px-3 py-2 rounded-lg text-xs font-semibold transition-all" id="compareRangeAllBtn" type="button">All time</button>
-</div>
+</div><div id="compareForecastHorizon" aria-hidden="true" inert aria-label="Forecast horizon" class="is-inactive flex flex-nowrap shrink-0 bg-slate-900/80 rounded-xl p-1 border border-slate-700/70" role="group"><button class="px-3 py-2 rounded-lg text-xs font-semibold transition-all" data-cmp-horizon="4" type="button">1 month</button><button class="px-3 py-2 rounded-lg text-xs font-semibold transition-all" data-cmp-horizon="8" type="button">2 months</button><button class="px-3 py-2 rounded-lg text-xs font-semibold transition-all" data-cmp-horizon="12" type="button">3 months</button></div></div>
 </div>
 </div>
 <div class="relative w-full h-[300px] sm:h-[480px]">
@@ -1443,6 +1444,7 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
         let playerChartRange = 'all';
         let compareChartMode = 'damage';
         let compareChartRange = 'all';
+        let compareForecastHorizon = 8;
         let clanChartMode = 'damage';
         let clanChartRange = 'all';
         let playerChartInstance = null;
@@ -2412,13 +2414,60 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
                 }
             });
         }
+        // ---- Compare: forecast view (graph only, no forecast numbers) ----
+        function renderCompareForecast(players) {
+            const horizon = compareForecastHorizon, colors = ['#818cf8', '#34d399', '#f59e0b'];
+            const hist = dates.slice(-12), lastDate = dates[dates.length - 1] || '';
+            const futureLabels = Array.from({ length: horizon }, (_, k) => formatForecastDate(lastDate, k + 1));
+            const datasets = [];
+            players.forEach((name, i) => {
+                const series = isClanCompare(name) ? getClanAverageSeries() : getPlayerSeries(name);
+                const pairs = series.dates.map((d, k) => ({ date: d, value: Number(series.data[k]) })).filter(p => Number.isFinite(p.value));
+                if (!pairs.length) return;
+                const model = forecastLinear(pairs.slice(-20).map(p => p.value), horizon);
+                const byDate = new Map(pairs.map(p => [p.date, p.value]));
+                const color = colors[i % colors.length], label = isClanCompare(name) ? CLAN_COMPARE_LABEL : name;
+                const actual = hist.map(d => byDate.has(d) ? byDate.get(d) : null).concat(Array(horizon).fill(null));
+                const projected = Array(hist.length + horizon).fill(null);
+                projected[hist.length - 1] = pairs[pairs.length - 1].value;
+                model.future.forEach((v, k) => { projected[hist.length + k] = v; });
+                datasets.push({ label, data: actual, borderColor: color, backgroundColor: 'transparent', borderWidth: 2, pointRadius: 2, pointBackgroundColor: color, tension: .22, spanGaps: true });
+                datasets.push({ label: label + ' forecast', _fc: true, data: projected, borderColor: color, backgroundColor: 'transparent', borderWidth: 2, borderDash: [7, 5], pointRadius: 0, pointHoverRadius: 0, tension: .22, spanGaps: false });
+            });
+            compareChartTitle.textContent = 'Visualization';
+            if (compareChartInstance) compareChartInstance.destroy();
+            compareChartInstance = new Chart(document.getElementById('compareChart').getContext('2d'), {
+                type: 'line', data: { labels: hist.concat(futureLabels), datasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: true, position: 'top', labels: { color: '#94a3b8', font: { family: 'Inter', size: 12 }, filter: (item, data) => !data.datasets[item.datasetIndex]._fc } },
+                        tooltip: { filter: item => !item.dataset._fc, backgroundColor: '#1e293b', titleColor: '#f8fafc', bodyColor: '#cbd5e1', borderColor: '#334155', borderWidth: 1, padding: 12, boxPadding: 6, usePointStyle: true,
+                            callbacks: { label: c => ` ${c.dataset.label}: ${Number(c.parsed.y).toLocaleString()} Score` } }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(51, 65, 85, 0.4)', drawBorder: false }, ticks: { color: '#8a99af', font: { family: 'Inter', size: 12 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 15 } },
+                        y: { grid: { color: 'rgba(51, 65, 85, 0.4)', drawBorder: false }, ticks: { color: '#8a99af', font: { family: 'Inter', size: 12 } }, beginAtZero: false }
+                    }
+                }
+            });
+        }
+        function updateCompareForecastUI() {
+            const fc = compareChartMode === 'forecast';
+            const inactive = 'text-slate-400 hover:text-white', activeMode = 'bg-indigo-500/20 text-indigo-300', activeRange = 'bg-slate-700 text-white shadow-sm';
+            const clear = b => b.classList.remove('bg-slate-700', 'text-white', 'shadow-sm', 'bg-indigo-500/20', 'text-indigo-300', 'text-slate-400', 'hover:text-white');
+            setPeriodGroups(document.getElementById('compareRangeControls'), document.getElementById('compareForecastHorizon'), fc);
+            const f = document.getElementById('compareForecastModeBtn');
+            if (f) { f.setAttribute('aria-pressed', String(fc)); clear(f); f.classList.add(...(fc ? activeMode : inactive).split(' ')); }
+            if (fc && compareRankModeBtn) { clear(compareRankModeBtn); compareRankModeBtn.classList.add(...inactive.split(' ')); }
+            document.querySelectorAll('[data-cmp-horizon]').forEach(b => { clear(b); b.classList.add(...(Number(b.dataset.cmpHorizon) === compareForecastHorizon ? activeRange : inactive).split(' ')); });
+        }
+
 
         function updateCompare() {
             const players = getSelectedComparePlayers();
             renderComparisonInsights(players);
-            if (players.length) {
-                renderChart('compareChart', players, compareChartMode, compareChartRange, compareChartTitle, 'compare');
-            } else {
+            if (players.length && compareChartMode === 'forecast') { renderCompareForecast(players); } else if (players.length) { renderChart('compareChart', players, compareChartMode, compareChartRange, compareChartTitle, 'compare'); } else {
                 if (compareChartInstance) compareChartInstance.destroy();
                 const canvas = document.getElementById('compareChart');
                 const rangeDays = compareChartRange === '3m' ? 92 : compareChartRange === '1y' ? 365 : Infinity;
@@ -2427,6 +2476,7 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
                 compareChartInstance = new Chart(canvas.getContext('2d'), { type: 'line', data: { labels: blankDates, datasets: [] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(51,65,85,.4)' }, ticks: { color: '#8a99af', maxTicksLimit: 15, maxRotation: 45 } }, y: { beginAtZero: true, min: 0, max: 1, ticks: { display: false }, grid: { color: 'rgba(51,65,85,.4)' } } } } });
             }
             updateControls([compareDamageModeBtn, compareGrowthModeBtn, compareRankModeBtn, compareRange3mBtn, compareRange1yBtn, compareRangeAllBtn], compareChartMode, compareChartRange);
+        updateCompareForecastUI();
             updateComparisonTable(players);
             updateComparisonRadar(players);
         }
@@ -2668,6 +2718,8 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
         compareRange3mBtn.addEventListener('click', () => { compareChartRange = '3m'; updateCompare(); });
         compareRange1yBtn.addEventListener('click', () => { compareChartRange = '1y'; updateCompare(); });
         compareRangeAllBtn.addEventListener('click', () => { compareChartRange = 'all'; updateCompare(); });
+        document.getElementById('compareForecastModeBtn')?.addEventListener('click', () => { compareChartMode = 'forecast'; updateCompare(); });
+        document.querySelectorAll('[data-cmp-horizon]').forEach(b => b.addEventListener('click', () => { compareForecastHorizon = Number(b.dataset.cmpHorizon); updateCompare(); }));
 
         // Remembered Player profile: safely persist nickname + avatar without touching other app preferences.
         const REMEMBERED_PLAYER_KEY = 'testaments.rememberedPlayer.v1';
@@ -3353,7 +3405,7 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
                 {label:'0–500',min:0,max:500},{label:'501–1,000',min:501,max:1000},
                 {label:'1,001–1,500',min:1001,max:1500},{label:'1,501–2,000',min:1501,max:2000},
                 {label:'2,001–2,500',min:2001,max:2500},{label:'2,501–3,000',min:2501,max:3000},
-                {label:'3,001–3,500',min:3001,max:3500}
+                {label:'3,001–3,500',min:3001,max:3500},{label:'3,501–4,000',min:3501,max:4000}
             ];
             const counts=ranges.map(r=>scores.filter(score=>score>=r.min&&score<=r.max).length);
             const maxCount=Math.max(1,...counts);
@@ -3371,7 +3423,8 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
                 {label:'1,501–2,000', min:1501, max:2000},
                 {label:'2,001–2,500', min:2001, max:2500},
                 {label:'2,501–3,000', min:2501, max:3000},
-                {label:'3,001–3,500', min:3001, max:3500}
+                {label:'3,001–3,500', min:3001, max:3500},
+                {label:'3,501–4,000', min:3501, max:4000}
             ];
             const eligiblePlayers = playerNames.filter(name => hasPlayerHistory(name));
             const noAttackCount = eligiblePlayers.filter(name => !Number.isFinite(getClanRawValue(name, dates.length - 1))).length;
@@ -4592,7 +4645,7 @@ html[data-theme="light"] .dist-chip b{color:var(--c-indigo-700)}
   } catch (e) {}
 
   /* 7. Clan Score Distribution: tap a bar to see which players are in that range. */
-  var CLAN_RANGES = [{ none: true }, { min: 1, max: 1000 }, { min: 1001, max: 1500 }, { min: 1501, max: 2000 }, { min: 2001, max: 2500 }, { min: 2501, max: 3000 }, { min: 3001, max: 3500 }];
+  var CLAN_RANGES = [{ none: true }, { min: 1, max: 1000 }, { min: 1001, max: 1500 }, { min: 1501, max: 2000 }, { min: 2001, max: 2500 }, { min: 2501, max: 3000 }, { min: 3001, max: 3500 }, { min: 3501, max: 4000 }];
   function clanPlayersIn(i) {
     var last = dates.length - 1, r = CLAN_RANGES[i];
     if (r.none) return playerNames.filter(function (n) { return hasPlayerHistory(n) && !isFinite(getClanRawValue(n, last)); }).map(function (n) { return { n: n, v: null }; });
@@ -5070,8 +5123,8 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
   /* Soft pastel palette sampled from the reference mockup (pink, sand, mint, sky, periwinkle, lavender, orchid).
      Light theme uses deeper tones of the same hues so the slices stay readable on white. */
   var PAL={
-    dark:['#f4aecc','#f4dca8','#a8e3c3','#9cd4fb','#80a4f6','#c2b0fa','#ecb3f6'],
-    light:['#e0709f','#d9a441','#4fb583','#4aa8e6','#5b7fe0','#8f73e6','#c46ddb']
+    dark:['#f4aecc','#f4dca8','#a8e3c3','#72c7bb','#9cd4fb','#80a4f6','#c2b0fa','#ecb3f6'],
+    light:['#e0709f','#d9a441','#4fb583','#2a9d8f','#4aa8e6','#5b7fe0','#8f73e6','#c46ddb']
   };
   function palette(){return document.documentElement.getAttribute('data-theme')==='light'?PAL.light:PAL.dark}
   function rgb(h){var n=parseInt(h.slice(1),16);return[n>>16&255,n>>8&255,n&255]}
@@ -5087,7 +5140,7 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
     rows.forEach(function(r,i){
       var n=Number((r.querySelector('.score-dist-count')||{}).textContent)||0;
       data.push(n);total+=n;labels.push((r.querySelector('.score-dist-label')||{}).textContent||'');
-      cols.push(palette()[i%7]);r.style.setProperty('--pc',cols[i]);
+      cols.push(palette()[i%palette().length]);r.style.setProperty('--pc',cols[i]);
       r.style.display=n?'':'none';   /* a range with 0 players/scores is not listed */
     });
     /* pie on the left, legend rows on the right */
@@ -5148,7 +5201,7 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var RANGES = [[0, 500], [501, 1000], [1001, 1500], [1501, 2000], [2001, 2500], [2501, 3000], [3001, 3500]];
+  var RANGES = [[0, 500], [501, 1000], [1001, 1500], [1501, 2000], [2001, 2500], [2501, 3000], [3001, 3500], [3501, 4000]];
   var MAX_CHIPS = 24;
   function fmtDate(d) {
     try { if (d instanceof Date) return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) {}
