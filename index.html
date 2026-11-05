@@ -777,6 +777,19 @@ html[data-theme="light"] .dist-detail{background:color-mix(in srgb,var(--pc,#647
 @media(prefers-reduced-motion:reduce){.dist-detail{animation:none}}
 @media(max-width:420px){.dist-layout{gap:12px}.dist-pie-mode .score-dist-label,.dist-pie-mode .score-dist-count{font-size:13px}}
 </style>
+<style id="clan-correlation-css">
+.cq-legend{display:grid;grid-template-columns:1fr 1fr;gap:.25rem .5rem;margin-top:.75rem}
+@media(max-width:480px){.cq-legend{grid-template-columns:1fr}}
+.cq-row{display:flex;align-items:center;gap:.5rem;min-height:2.25rem;padding:.25rem .5rem;border-radius:.5rem;cursor:pointer;font-size:.8rem;color:var(--c-slate-200);background:transparent;border:0;text-align:left;transition:opacity .2s ease,background .2s ease}
+.cq-row:hover{background:rgba(148,163,184,.1)}
+.cq-row:focus-visible{outline:2px solid var(--c-indigo-400);outline-offset:1px}
+.cq-row i{width:.65rem;height:.65rem;border-radius:50%;background:var(--pc);flex:none}
+.cq-row b{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--c-slate-400)}
+.cq-legend.has-sel .cq-row:not([aria-expanded="true"]){opacity:.42}
+.cq-row[aria-expanded="true"]{background:color-mix(in srgb,var(--pc) 22%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--pc) 75%,transparent);font-weight:700;color:#fff}
+html[data-theme="light"] .cq-row{color:var(--c-slate-700)}
+html[data-theme="light"] .cq-row[aria-expanded="true"]{color:var(--c-slate-900,#0f172a)}
+</style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 pb-12">
 <div id="initialLoadingOverlay" aria-live="polite" aria-label="Loading data"><div class="initial-loading-content"><div class="initial-loading-spinner" aria-hidden="true"></div><div class="initial-loading-text">Loading</div></div></div>
@@ -804,9 +817,9 @@ window.setTimeout(() => { document.getElementById('initialLoadingOverlay')?.clas
 <button id="navMenuToggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="navMenuPanel" title="Navigation" class="nav-menu-toggle px-3 py-2 rounded-xl border border-slate-700/70 bg-slate-900/80 text-slate-300 hover:text-white transition-all"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
 <div id="navMenuPanel" class="nav-menu-panel" hidden>
 <button class="nav-menu-item" id="menuPlayer" type="button"><span class="menu-icon" style="color:#ef4444"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>Player</button>
-<button class="nav-menu-item" id="menuAchievement" type="button"><span class="menu-icon" style="color:#eab308"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span>Achievement</button>
 <button class="nav-menu-item" id="tabCompare" type="button"><span class="menu-icon" style="color:#1d4ed8"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg></span>Compare</button>
 <button class="nav-menu-item" id="tabClan" type="button"><span class="menu-icon" style="color:#a78bfa"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0M16 4.5a3.5 3.5 0 0 1 0 7M22 20a7 7 0 0 0-5-6.7"/></svg></span>Clan</button>
+<button class="nav-menu-item" id="menuAchievement" type="button"><span class="menu-icon" style="color:#eab308"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span>Achievement</button>
 <button class="nav-menu-item" id="tabLeaderboard" type="button"><span class="menu-icon" style="color:#7dd3fc"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M4 21v-6h5v6M9.5 21V5h5v16M15 21v-10h5v10"/></svg></span>Leaderboard</button>
 <button class="nav-menu-item" id="menuFlux" type="button"><span class="menu-icon" style="color:#22c55e"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>Flux</button>
 <div class="nav-menu-divider"></div>
@@ -1062,6 +1075,14 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
 <div id="clanScoreDistributionSection">
 <div class="mb-4"><h3 class="text-lg font-bold text-white">Score Distribution</h3></div>
 <div id="clanScoreDistributionBars" class="space-y-3"></div>
+</div>
+<hr class="my-6 border-slate-700/60" id="clanQuadrantDivider">
+<div id="clanQuadrantSection">
+<div class="mb-4"><h3 class="text-lg font-bold text-white">Correlation</h3></div>
+<div class="relative w-full h-[320px] sm:h-[420px]"><canvas id="clanQuadrantChart"></canvas></div>
+<div class="cq-legend" id="clanQuadrantLegend"></div>
+<div id="clanQuadrantDetailSlot"></div>
+<p class="dist-caption" id="clanQuadrantHint">Tap a group or a point to see who is in it.</p>
 </div>
 </div>
 </div>
@@ -5280,5 +5301,106 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
     renderPlayerScoreDistribution = function () { orig.apply(this, arguments); try { decorate(); } catch (e) {} };
   } catch (e) {}
 })();
-</script></body>
+</script><script id="clan-quadrant-js">
+(function(){
+  'use strict';
+  var LABELS={HH:'High peak · High growth',HL:'High peak · Low growth',LH:'Low peak · High growth',LL:'Low peak · Low growth'};
+  var COLORS={HH:'#22c55e',HL:'#eab308',LH:'#3b82f6',LL:'#ef4444'};
+  var chart=null;
+  function med(a){var s=a.slice().sort(function(x,y){return x-y}),n=s.length;return n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2;}
+  function kmeans4(pts){
+    var n=pts.length,k=4,i,j;
+    function stat(key){var m=pts.reduce(function(a,p){return a+p[key]},0)/n,sd=Math.sqrt(pts.reduce(function(a,p){return a+Math.pow(p[key]-m,2)},0)/n)||1;return{m:m,sd:sd};}
+    var sx=stat('x'),sy=stat('y');
+    pts.forEach(function(p){p.zx=(p.x-sx.m)/sx.sd;p.zy=(p.y-sy.m)/sy.sd;});
+    var mx=med(pts.map(function(p){return p.zx})),my=med(pts.map(function(p){return p.zy}));
+    /* deterministic init: mean of each median-split quadrant */
+    var cents=[];
+    for(i=0;i<k;i++){
+      var g=pts.filter(function(p){return ((p.zx>=mx?1:0)*2+(p.zy>=my?1:0))===i});
+      cents.push(g.length?{x:g.reduce(function(a,p){return a+p.zx},0)/g.length,y:g.reduce(function(a,p){return a+p.zy},0)/g.length}:null);
+    }
+    cents.forEach(function(c,idx){ if(!c){var far=pts.slice().sort(function(a,b){return (b.zx*b.zx+b.zy*b.zy)-(a.zx*a.zx+a.zy*a.zy)})[idx%n];cents[idx]={x:far.zx,y:far.zy};}});
+    var assign=new Array(n).fill(-1);
+    for(var it=0;it<200;it++){
+      var changed=false;
+      for(i=0;i<n;i++){
+        var best=0,bd=Infinity;
+        for(j=0;j<k;j++){var d=Math.pow(pts[i].zx-cents[j].x,2)+Math.pow(pts[i].zy-cents[j].y,2);if(d<bd){bd=d;best=j;}}
+        if(assign[i]!==best){assign[i]=best;changed=true;}
+      }
+      for(j=0;j<k;j++){
+        var mem=pts.filter(function(_,t){return assign[t]===j});
+        if(mem.length){cents[j]={x:mem.reduce(function(a,p){return a+p.zx},0)/mem.length,y:mem.reduce(function(a,p){return a+p.zy},0)/mem.length};}
+        else{ /* re-seed empty cluster at the point farthest from its centroid */
+          var fi=0,fd=-1;for(i=0;i<n;i++){var c=cents[assign[i]],dd=Math.pow(pts[i].zx-c.x,2)+Math.pow(pts[i].zy-c.y,2);if(dd>fd){fd=dd;fi=i;}}
+          cents[j]={x:pts[fi].zx,y:pts[fi].zy};changed=true;
+        }
+      }
+      if(!changed)break;
+    }
+    /* name clusters: two lowest centroid-x = Low peak, two highest = High peak; higher y = High growth */
+    var order=[0,1,2,3].sort(function(a,b){return cents[a].x-cents[b].x});
+    var names={};
+    [[order[0],order[1],'L'],[order[2],order[3],'H']].forEach(function(pr){
+      var a=pr[0],b=pr[1],hi=cents[a].y>=cents[b].y?a:b,lo=hi===a?b:a;
+      names[hi]=pr[2]+'H';names[lo]=pr[2]+'L';
+    });
+    var out={HH:[],HL:[],LH:[],LL:[]};
+    pts.forEach(function(p,t){out[names[assign[t]]].push(p);});
+    var cen={};for(j=0;j<k;j++)cen[names[j]]={x:cents[j].x*sx.sd+sx.m,y:cents[j].y*sy.sd+sy.m};
+    return{groups:out,centroids:cen};
+  }
+  window.__clanKMeans4=kmeans4;
+  function isLight(){return document.documentElement.getAttribute('data-theme')==='light';}
+  var KEYS=['HH','HL','LH','LL'],sel=null,cur=null;
+  function paint(){
+    if(!chart)return;
+    chart.data.datasets.forEach(function(d,i){
+      var k=KEYS[i%4],on=!sel||sel===k;
+      d.backgroundColor=d._centroid?'transparent':(on?COLORS[k]:COLORS[k]+'30');
+      d.borderColor=on?COLORS[k]:COLORS[k]+'30';
+      d.pointRadius=d._centroid?(on?11:8):(sel===k?7:5);
+    });
+    chart.update('none');
+    var lg=document.getElementById('clanQuadrantLegend');
+    if(lg){lg.classList.toggle('has-sel',!!sel);lg.querySelectorAll('.cq-row').forEach(function(r){r.setAttribute('aria-expanded',String(r.dataset.k===sel));});}
+    var slot=document.getElementById('clanQuadrantDetailSlot'); if(!slot)return; slot.innerHTML='';
+    if(!sel||!cur)return;
+    var g=cur.groups[sel].slice().sort(function(a,b){return b.x-a.x}),d=document.createElement('div');
+    d.className='dist-detail';d.style.setProperty('--pc',COLORS[sel]);
+    var t=document.createElement('div');t.className='dist-detail-title';t.textContent=LABELS[sel]+' · '+g.length+(g.length===1?' player':' players');d.appendChild(t);
+    if(!g.length)d.appendChild(document.createTextNode('No players found'));
+    g.forEach(function(p){var c=document.createElement('span');c.className='dist-chip';c.textContent=p.n;d.appendChild(c);});
+    slot.appendChild(d);
+  }
+  function pick(k){sel=(sel===k)?null:k;paint();}
+  function render(){
+    var cv=document.getElementById('clanQuadrantChart'),lg=document.getElementById('clanQuadrantLegend');
+    if(!cv||!lg||typeof Chart==='undefined'||typeof playerNames==='undefined'||typeof getComparisonMetrics!=='function')return;
+    var pts=[];
+    playerNames.forEach(function(nm){
+      try{ if(!hasPlayerHistory(nm))return; var m=getComparisonMetrics(nm);
+        if(m&&Number.isFinite(m.peak)&&Number.isFinite(m.avgGrowth))pts.push({n:nm,x:m.peak,y:m.avgGrowth}); }catch(e){}
+    });
+    if(chart){chart.destroy();chart=null;}
+    if(pts.length<4){lg.innerHTML='';cur=null;sel=null;var sl=document.getElementById('clanQuadrantDetailSlot');if(sl)sl.innerHTML='';return;}
+    cur=kmeans4(pts);var res=cur,light=isLight(),tick=light?'#475569':'#8a99af',grid=light?'rgba(148,163,184,.35)':'rgba(51,65,85,.4)';
+    var ds=KEYS.map(function(k){return{label:LABELS[k],data:res.groups[k].map(function(p){return{x:p.x,y:p.y,n:p.n}}),pointHitRadius:12};});
+    KEYS.forEach(function(k){ds.push({label:k+' centroid',data:[res.centroids[k]],pointStyle:'crossRot',borderWidth:2,pointHitRadius:12,_centroid:true});});
+    chart=new Chart(cv.getContext('2d'),{type:'scatter',data:{datasets:ds},options:{responsive:true,maintainAspectRatio:false,
+      onClick:function(ev,els){ if(els&&els.length){pick(KEYS[els[0].datasetIndex%4]);} else if(sel){sel=null;paint();} },
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){var r=c.raw;return r&&r.n?' '+r.n+' · Peak '+fmt(r.x)+' · Growth '+fmt(r.y):' '+c.dataset.label.replace(' centroid',' · centroid');}}}},
+      scales:{x:{title:{display:true,text:'Peak',color:tick},ticks:{color:tick},grid:{color:grid}},y:{title:{display:true,text:'Growth',color:tick},ticks:{color:tick},grid:{color:grid}}}}});
+    lg.innerHTML=KEYS.map(function(k){return '<button type="button" class="cq-row" data-k="'+k+'" style="--pc:'+COLORS[k]+'" aria-expanded="false"><i></i>'+LABELS[k]+'<b>'+res.groups[k].length+'</b></button>';}).join('');
+    lg.querySelectorAll('.cq-row').forEach(function(r){r.addEventListener('click',function(){pick(r.dataset.k);});});
+    paint();
+  }
+  var orig=window.updateClan;
+  if(typeof orig==='function')window.updateClan=function(){var r=orig.apply(this,arguments);try{render();}catch(e){}return r;};
+  new MutationObserver(function(){try{render();}catch(e){}}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  try{if(typeof playerNames!=='undefined'&&playerNames.length)render();}catch(e){}
+})();
+</script>
+</body>
 </html>
