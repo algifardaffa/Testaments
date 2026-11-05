@@ -1078,11 +1078,11 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
 </div>
 <hr class="my-6 border-slate-700/60" id="clanQuadrantDivider">
 <div id="clanQuadrantSection">
-<div class="mb-4"><h3 class="text-lg font-bold text-white">Correlation</h3></div>
+<div class="mb-4"><h3 class="text-lg font-bold text-white">Correlation</h3><p class="dist-caption" id="clanQuadrantHint" style="margin-top:.25rem">Tap a group or a point to see who is in it.</p></div>
 <div class="relative w-full h-[320px] sm:h-[420px]"><canvas id="clanQuadrantChart"></canvas></div>
+<p class="dist-caption" id="clanQuadrantPointInfo" aria-live="polite" style="min-height:1.25rem;font-weight:600"></p>
 <div class="cq-legend" id="clanQuadrantLegend"></div>
 <div id="clanQuadrantDetailSlot"></div>
-<p class="dist-caption" id="clanQuadrantHint">Tap a group or a point to see who is in it.</p>
 </div>
 </div>
 </div>
@@ -4717,7 +4717,7 @@ html[data-theme="light"] .dist-chip b{color:var(--c-indigo-700)}
           r.dataset.i = i; r.setAttribute('role', 'button'); r.setAttribute('tabindex', '0'); r.setAttribute('aria-expanded', 'false'); r.classList.add('is-tappable');
         });
         var hint = $('clanDistHint');
-        if (!hint) { hint = document.createElement('p'); hint.id = 'clanDistHint'; hint.className = 'dist-caption'; hint.textContent = 'Tap a slice or a range to see who is in it.'; box.insertAdjacentElement('afterend', hint); }
+        if (!hint) { hint = document.createElement('p'); hint.id = 'clanDistHint'; hint.className = 'dist-caption'; hint.textContent = 'Tap a slice or a range to see who is in it.'; hint.style.marginTop = '.25rem'; var head = box.closest('#clanScoreDistributionSection'); head = head && head.querySelector('.mb-4'); if (head) head.appendChild(hint); else box.insertAdjacentElement('beforebegin', hint); }
       } catch (e) {}
     };
   } catch (e) {}
@@ -5374,6 +5374,11 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
     g.forEach(function(p){var c=document.createElement('span');c.className='dist-chip';c.textContent=p.n;d.appendChild(c);});
     slot.appendChild(d);
   }
+  function showPoint(r){
+    var el=document.getElementById('clanQuadrantPointInfo'); if(!el)return;
+    var f=function(v){return Number(v).toLocaleString('en-US',{maximumFractionDigits:1});};
+    el.textContent=r&&r.n?r.n+' \u2022 peak '+Math.round(r.x).toLocaleString('en-US')+' \u2022 growth '+f(r.y):'';
+  }
   function pick(k){sel=(sel===k)?null:k;paint();}
   function render(){
     var cv=document.getElementById('clanQuadrantChart'),lg=document.getElementById('clanQuadrantLegend');
@@ -5389,11 +5394,11 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
     var ds=KEYS.map(function(k){return{label:LABELS[k],data:res.groups[k].map(function(p){return{x:p.x,y:p.y,n:p.n}}),pointHitRadius:12};});
     KEYS.forEach(function(k){ds.push({label:k+' centroid',data:[res.centroids[k]],pointStyle:'crossRot',borderWidth:2,pointHitRadius:12,_centroid:true});});
     chart=new Chart(cv.getContext('2d'),{type:'scatter',data:{datasets:ds},options:{responsive:true,maintainAspectRatio:false,
-      onClick:function(ev,els){ if(els&&els.length){pick(KEYS[els[0].datasetIndex%4]);} else if(sel){sel=null;paint();} },
+      onClick:function(ev,els){ if(els&&els.length){var e0=els[0],raw=chart.data.datasets[e0.datasetIndex].data[e0.index];showPoint(raw&&raw.n?raw:null);pick(KEYS[e0.datasetIndex%4]);} else {showPoint(null);if(sel){sel=null;paint();}} },
       plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){var r=c.raw;return r&&r.n?' '+r.n+' · Peak '+fmt(r.x)+' · Growth '+fmt(r.y):' '+c.dataset.label.replace(' centroid',' · centroid');}}}},
       scales:{x:{title:{display:true,text:'Peak',color:tick},ticks:{color:tick},grid:{color:grid}},y:{title:{display:true,text:'Growth',color:tick},ticks:{color:tick},grid:{color:grid}}}}});
     lg.innerHTML=KEYS.map(function(k){return '<button type="button" class="cq-row" data-k="'+k+'" style="--pc:'+COLORS[k]+'" aria-expanded="false"><i></i>'+LABELS[k]+'<b>'+res.groups[k].length+'</b></button>';}).join('');
-    lg.querySelectorAll('.cq-row').forEach(function(r){r.addEventListener('click',function(){pick(r.dataset.k);});});
+    lg.querySelectorAll('.cq-row').forEach(function(r){r.addEventListener('click',function(){showPoint(null);pick(r.dataset.k);});});
     paint();
   }
   var orig=window.updateClan;
