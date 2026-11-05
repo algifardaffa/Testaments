@@ -778,7 +778,10 @@ html[data-theme="light"] .dist-detail{background:color-mix(in srgb,var(--pc,#647
 @media(max-width:420px){.dist-layout{gap:12px}.dist-pie-mode .score-dist-label,.dist-pie-mode .score-dist-count{font-size:13px}}
 </style>
 <style id="clan-correlation-css">
-.cq-legend{display:grid;grid-template-columns:1fr 1fr;gap:.25rem .5rem;margin-top:.75rem}
+.cq-legend{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:1.5rem}
+#clanQuadrantPointInfo{position:absolute;z-index:5;pointer-events:none;white-space:nowrap;padding:.3rem .6rem;border-radius:.5rem;font-size:.75rem;font-weight:600;line-height:1.3;color:#f8fafc;background:rgba(15,23,42,.95);border:1px solid rgba(148,163,184,.45);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+#clanQuadrantPointInfo[hidden]{display:none}
+html[data-theme="light"] #clanQuadrantPointInfo{color:#0f172a;background:rgba(255,255,255,.97);border-color:#94a3b8}
 @media(max-width:480px){.cq-legend{grid-template-columns:1fr}}
 .cq-row{display:flex;align-items:center;gap:.5rem;min-height:2.25rem;padding:.25rem .5rem;border-radius:.5rem;cursor:pointer;font-size:.8rem;color:var(--c-slate-200);background:transparent;border:0;text-align:left;transition:opacity .2s ease,background .2s ease}
 .cq-row:hover{background:rgba(148,163,184,.1)}
@@ -1071,18 +1074,17 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
 <div id="clanAttrUnwavering"></div><div id="clanAttrJoinDuration"></div><div id="clanAttrTotalLme"></div>
 </div>
 <!-- SCORE DISTRIBUTION: part of the Clan main container, separated by ONE horizontal divider (no own bubble) -->
+<hr class="my-6 border-slate-700/60" id="clanQuadrantDivider">
+<div id="clanQuadrantSection">
+<div class="mb-4"><h3 class="text-lg font-bold text-white">Correlation</h3><p class="dist-caption" id="clanQuadrantHint" style="margin-top:.25rem">Tap a group or a point to see who is in it.</p></div>
+<div class="relative w-full h-[320px] sm:h-[420px]"><canvas id="clanQuadrantChart"></canvas><div id="clanQuadrantPointInfo" role="status" aria-live="polite" hidden></div></div>
+<div class="cq-legend" id="clanQuadrantLegend"></div>
+<div id="clanQuadrantDetailSlot"></div>
+</div>
 <hr class="my-6 border-slate-700/60" id="clanScoreDistributionDivider">
 <div id="clanScoreDistributionSection">
 <div class="mb-4"><h3 class="text-lg font-bold text-white">Score Distribution</h3></div>
 <div id="clanScoreDistributionBars" class="space-y-3"></div>
-</div>
-<hr class="my-6 border-slate-700/60" id="clanQuadrantDivider">
-<div id="clanQuadrantSection">
-<div class="mb-4"><h3 class="text-lg font-bold text-white">Correlation</h3><p class="dist-caption" id="clanQuadrantHint" style="margin-top:.25rem">Tap a group or a point to see who is in it.</p></div>
-<div class="relative w-full h-[320px] sm:h-[420px]"><canvas id="clanQuadrantChart"></canvas></div>
-<p class="dist-caption" id="clanQuadrantPointInfo" aria-live="polite" style="min-height:1.25rem;font-weight:600"></p>
-<div class="cq-legend" id="clanQuadrantLegend"></div>
-<div id="clanQuadrantDetailSlot"></div>
 </div>
 </div>
 </div>
@@ -5291,8 +5293,9 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
     if (!hint) {
       hint = document.createElement('p'); hint.id = 'playerDistHint'; hint.className = 'dist-caption';
       hint.textContent = 'Tap a slice or a range to see when those scores happened.';
-      var anchor = $('playerDistCaption') || b.closest('.dist-layout') || b;
-      anchor.insertAdjacentElement('afterend', hint);
+      hint.style.marginTop = '.25rem';
+      var head = b.closest('#playerScoreDistributionBubble'); head = head && head.querySelector('.mb-4');
+      if (head) head.appendChild(hint); else (b.closest('.dist-layout') || b).insertAdjacentElement('beforebegin', hint);
     }
     hint.style.display = ok ? '' : 'none';
   }
@@ -5374,10 +5377,17 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
     g.forEach(function(p){var c=document.createElement('span');c.className='dist-chip';c.textContent=p.n;d.appendChild(c);});
     slot.appendChild(d);
   }
-  function showPoint(r){
+  function showPoint(r,di,idx){
     var el=document.getElementById('clanQuadrantPointInfo'); if(!el)return;
+    if(!r||!r.n||!chart){el.hidden=true;return;}
     var f=function(v){return Number(v).toLocaleString('en-US',{maximumFractionDigits:1});};
-    el.textContent=r&&r.n?r.n+' \u2022 peak '+Math.round(r.x).toLocaleString('en-US')+' \u2022 growth '+f(r.y):'';
+    el.textContent=r.n+' \u2022 peak '+Math.round(r.x).toLocaleString('en-US')+' \u2022 growth '+f(r.y);
+    el.hidden=false;
+    var pt=chart.getDatasetMeta(di).data[idx]; if(!pt)return;
+    var W=chart.width,w=el.offsetWidth,h=el.offsetHeight;
+    var left=Math.min(Math.max(pt.x-w/2,4),Math.max(4,W-w-4));
+    var top=pt.y-h-12; if(top<4)top=pt.y+14;
+    el.style.left=left+'px'; el.style.top=top+'px';
   }
   function pick(k){sel=(sel===k)?null:k;paint();}
   function render(){
@@ -5394,7 +5404,7 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
     var ds=KEYS.map(function(k){return{label:LABELS[k],data:res.groups[k].map(function(p){return{x:p.x,y:p.y,n:p.n}}),pointHitRadius:12};});
     KEYS.forEach(function(k){ds.push({label:k+' centroid',data:[res.centroids[k]],pointStyle:'crossRot',borderWidth:2,pointHitRadius:12,_centroid:true});});
     chart=new Chart(cv.getContext('2d'),{type:'scatter',data:{datasets:ds},options:{responsive:true,maintainAspectRatio:false,
-      onClick:function(ev,els){ if(els&&els.length){var e0=els[0],raw=chart.data.datasets[e0.datasetIndex].data[e0.index];showPoint(raw&&raw.n?raw:null);pick(KEYS[e0.datasetIndex%4]);} else {showPoint(null);if(sel){sel=null;paint();}} },
+      onClick:function(ev,els){ if(els&&els.length){var e0=els[0],raw=chart.data.datasets[e0.datasetIndex].data[e0.index];showPoint(raw&&raw.n?raw:null,e0.datasetIndex,e0.index);pick(KEYS[e0.datasetIndex%4]);} else {showPoint(null);if(sel){sel=null;paint();}} },
       plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){var r=c.raw;return r&&r.n?' '+r.n+' · Peak '+fmt(r.x)+' · Growth '+fmt(r.y):' '+c.dataset.label.replace(' centroid',' · centroid');}}}},
       scales:{x:{title:{display:true,text:'Peak',color:tick},ticks:{color:tick},grid:{color:grid}},y:{title:{display:true,text:'Growth',color:tick},ticks:{color:tick},grid:{color:grid}}}}});
     lg.innerHTML=KEYS.map(function(k){return '<button type="button" class="cq-row" data-k="'+k+'" style="--pc:'+COLORS[k]+'" aria-expanded="false"><i></i>'+LABELS[k]+'<b>'+res.groups[k].length+'</b></button>';}).join('');
