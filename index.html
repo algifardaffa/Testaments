@@ -793,6 +793,13 @@ html[data-theme="light"] #clanQuadrantPointInfo{color:#0f172a;background:rgba(25
 html[data-theme="light"] .cq-row{color:var(--c-slate-700)}
 html[data-theme="light"] .cq-row[aria-expanded="true"]{color:var(--c-slate-900,#0f172a)}
 </style>
+<meta name="screen-orientation" content="portrait"><meta name="x5-orientation" content="portrait">
+<script id="orientation-lock">
+(function(){
+  function lock(){ try{ var o=screen.orientation; if(o&&o.lock){ var r=o.lock('portrait'); if(r&&r.catch) r.catch(function(){}); } }catch(e){} }
+  lock(); document.addEventListener('click',lock,{once:true}); document.addEventListener('touchend',lock,{once:true});
+})();
+</script>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 pb-12">
 <div id="initialLoadingOverlay" aria-live="polite" aria-label="Loading data"><div class="initial-loading-content"><div class="initial-loading-spinner" aria-hidden="true"></div><div class="initial-loading-text">Loading</div></div></div>
@@ -825,6 +832,7 @@ window.setTimeout(() => { document.getElementById('initialLoadingOverlay')?.clas
 <button class="nav-menu-item" id="menuAchievement" type="button"><span class="menu-icon" style="color:#eab308"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span>Achievement</button>
 <button class="nav-menu-item" id="tabLeaderboard" type="button"><span class="menu-icon" style="color:#7dd3fc"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M4 21v-6h5v6M9.5 21V5h5v16M15 21v-10h5v10"/></svg></span>Leaderboard</button>
 <button class="nav-menu-item" id="menuFlux" type="button"><span class="menu-icon" style="color:#22c55e"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>Flux</button>
+<button class="nav-menu-item" id="tabNerd" type="button"><span class="menu-icon" style="color:#f59e0b"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h7M8 11h5"/></svg></span>Nerd</button>
 <div class="nav-menu-divider"></div>
 <button id="shareLinkBtn" type="button" aria-label="Copy link to this view" title="Copy link to this view" class="nav-menu-item"><span class="menu-icon" style="color:#94a3b8"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span><span id="shareLinkLabel">Share</span></button>
 <button id="installAppBtn" type="button" class="nav-menu-item"><span class="menu-icon" style="color:#818cf8"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span><span id="installAppLabel">Download app</span></button><p id="installHint" class="install-hint" hidden></p>
@@ -1076,7 +1084,7 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
 <!-- SCORE DISTRIBUTION: part of the Clan main container, separated by ONE horizontal divider (no own bubble) -->
 <hr class="my-6 border-slate-700/60" id="clanQuadrantDivider">
 <div id="clanQuadrantSection">
-<div class="mb-4"><h3 class="text-lg font-bold text-white">All In One Graph</h3><p class="dist-caption" id="clanQuadrantHint" style="margin-top:.25rem">Tap a group or a point to see who is in it.</p></div>
+<div class="mb-4"><h3 class="text-lg font-bold text-white">Clan Map</h3><p class="dist-caption" id="clanQuadrantHint" style="margin-top:.25rem">Tap a group or a point to see who is in it.</p></div>
 <div class="relative w-full h-[320px] sm:h-[420px]"><canvas id="clanQuadrantChart"></canvas></div>
 <div class="cq-legend" id="clanQuadrantLegend"></div>
 <div id="clanQuadrantDetailSlot"></div>
@@ -1278,6 +1286,63 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
 <div aria-label="Leaderboard pages" class="flex flex-wrap items-center justify-center gap-2 mt-3" id="leaderboardPages"></div>
 </div>
 </section>
+<section class="tab-section" id="nerdSection">
+<div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 shadow-xl overflow-hidden">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+<div><h2 class="text-xl font-bold text-white">Nerd Glossary</h2><p class="dist-caption" style="margin-top:.25rem">Tap a letter to see the terms that start with it.</p></div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-sm" id="nerdTable">
+<thead><tr class="border-b border-slate-700/70 text-slate-400">
+<th class="text-left py-3 px-3 font-semibold whitespace-nowrap">Term</th><th class="text-left py-3 px-3 font-semibold">Definition</th>
+</tr></thead>
+<tbody id="nerdBody"></tbody>
+</table>
+</div>
+</div>
+</section>
+<style id="nerd-css">
+#nerdBody tr.nerd-letter-row{cursor:pointer}
+#nerdBody .nerd-letter-btn{display:flex;align-items:center;gap:.75rem;width:100%;min-height:2.75rem;padding:.35rem .25rem;background:transparent;border:0;text-align:left;color:#fff;cursor:pointer}
+#nerdBody .nerd-letter-btn:focus-visible{outline:2px solid var(--c-indigo-400);outline-offset:2px;border-radius:.5rem}
+#nerdBody .nerd-letter{font-size:1.25rem;font-weight:800;width:1.75rem;color:#fff}
+#nerdBody tr:nth-child(odd){background:rgba(30,41,59,.22)}
+#nerdBody tr:nth-child(even){background:rgba(51,65,85,.28)}
+#nerdBody .nerd-count{font-size:.75rem;color:var(--c-slate-400)}
+#nerdBody .nerd-chev{margin-left:auto;display:inline-flex;transition:transform .2s ease;color:var(--c-slate-400)}
+#nerdBody .nerd-letter-btn[aria-expanded="true"] .nerd-chev{transform:rotate(180deg)}
+#nerdBody tr.nerd-term td:first-child{min-width:9rem}
+html[data-theme="light"] #nerdBody .nerd-letter-btn{color:#0f172a}
+html[data-theme="light"] #nerdBody .nerd-letter{color:#0f172a}
+</style>
+<script id="nerd-glossary-js">
+(function(){
+  'use strict';
+  var TERMS=[["Active Player", "The number of players who have submitted actual score data in the latest snapshot."], ["Achievement", "A player progression system consisting of 10 achievements, each with 5 tiers. There are 50 achievement tiers in total."], ["Achievement Tier", "The five levels of each achievement: Good, Excellent, Epic, Legend, and Eternal."], ["Avg Growth", "The average change in a player's score per LME, calculated using up to the latest 52 available snapshots."], ["Big Drop", "The largest decrease in a player's score within a single LME interval. It is calculated using the player's entire recorded history."], ["Big Gain", "The largest increase in a player's score within a single LME interval. It is calculated using the player's entire recorded history."], ["Clan Average", "The average score of players in a clan within a particular snapshot. Only players with actual data in that snapshot are included."], ["Clan Growth", "The average change in a clan's total Testaments per LME, calculated using up to the latest 26 snapshots."], ["Clan Map", "A scatter plot that visualizes the distribution of players within a clan. Each point represents one player."], ["Clan Score Distribution", "A chart showing the proportion of players across different score ranges or score buckets."], ["Comparison Insight", "A section highlighting important statistics when comparing players, such as Last Gain, Rank, Score, and Consistency."], ["Consistency", "A measure of how consistent a player's progression is. It considers score fluctuations, deviations from the trend, and changes in the direction of progression."], ["Data Snapshot", "A collection of player data representing the recorded state at a specific point in time."], ["Flux Belt", "The range of Flux values used as an input in the Flux Simulator. Users can specify both the minimum and maximum values."], ["Flux Simulator", "A simulation feature that estimates Flux outcomes based on Flux Belt, Reso Chance, Reso Damage, and SS Gloves V4 settings."], ["Growth", "The change in score over an LME interval. In player statistics, Growth is also used to calculate average progression."], ["Join Duration", "The elapsed time between a player's first and most recent recorded appearance in the dataset."], ["Last Gain", "The score change in the most recent interval, calculated by comparing the latest snapshot with the previous one."], ["Leaderboard", "A ranking table that displays players based on their statistics, such as Rank, Score, Growth, and Consistency."], ["Mean", "The average score of players in a clan within the latest snapshot."], ["Median", "The middle value of the score distribution among players in a clan within the latest snapshot."], ["Momentum", "An achievement related to maintaining positive progression across multiple intervals."], ["Peak", "The highest number of Testaments a player has ever achieved in a single LME. It represents a single-interval record, not the cumulative total of all Testaments earned throughout the player's history."], ["Player Insight", "A section that highlights important player statistics and key performance information."], ["Rank", "A player's current position on the leaderboard, determined by their score in the latest snapshot."], ["Rank Movement", "The change in a player's leaderboard position compared with the previous snapshot."], ["Reso Chance", "The probability of a Reso effect occurring during a Flux simulation."], ["Reso Damage", "The additional damage applied when a Reso effect occurs during a Flux simulation."], ["Score", "The number of Testaments a player has in a particular snapshot."], ["Score Distribution", "A visualization showing how players are distributed across different score ranges."], ["Snapshot", "A recorded dataset representing the state of player statistics at a specific point in time. Snapshots can be compared to measure changes over time."], ["SS Gloves V4", "A Flux Simulator setting that determines whether the SS Gloves V4 multiplier is applied. Enabling it changes the multiplier used in the simulation."], ["Star Comparison", "A radar chart that compares players across Last Gain, Growth, Score, Peak, and Consistency. Values are normalized against the clan's overall distribution."], ["Table Comparison", "A table displaying the statistics of multiple players side by side. A crown indicator marks the best value in each category."], ["Testaments", "The primary scoring unit used by the system to measure player and clan performance."], ["Total LME", "The total number of actual LME records submitted by a player. It counts recorded entries rather than the elapsed time since the player's first appearance."], ["Unwavering", "A statistic that measures the consistency of a player's progression based on score changes throughout their recorded history."]];
+  var body=document.getElementById('nerdBody'); if(!body) return;
+  var groups={};
+  TERMS.forEach(function(t){var L=t[0].charAt(0).toUpperCase();(groups[L]=groups[L]||[]).push(t);});
+  var letters=Object.keys(groups).sort(); /* only letters that have terms are shown */
+  var open=null;
+  function esc(x){return String(x).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function render(){
+    var html='';
+    letters.forEach(function(L){
+      var on=open===L;
+      html+='<tr class="nerd-letter-row border-b border-slate-800/70'+(on?' open':'')+'" data-l="'+L+'"><td colspan="2" class="px-3"><button type="button" class="nerd-letter-btn" aria-expanded="'+on+'" data-l="'+L+'"><span class="nerd-letter">'+L+'</span><span class="nerd-count">'+groups[L].length+(groups[L].length===1?' term':' terms')+'</span><span class="nerd-chev" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24" width="18" height="18"><path d="m6 9 6 6 6-6"/></svg></span></button></td></tr>';
+      if(on) groups[L].forEach(function(t){
+        html+='<tr class="nerd-term border-b border-slate-800/70 last:border-0 hover:brightness-110 transition-colors"><td class="py-3 px-3 text-slate-100 font-semibold align-top">'+esc(t[0])+'</td><td class="py-3 px-3 text-slate-300">'+esc(t[1])+'</td></tr>';
+      });
+    });
+    body.innerHTML=html;
+  }
+  body.addEventListener('click',function(e){
+    var b=e.target.closest('.nerd-letter-btn,.nerd-letter-row'); if(!b) return;
+    var L=b.dataset.l; open=(open===L)?null:L; render();
+  });
+  render();
+})();
+</script>
 <script id="icon-set">
 /* One consistent SVG icon set (stroke icons, 1em, inherit color) replacing text glyphs. */
 (function(){
@@ -2641,8 +2706,8 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
         });
 
         function switchTab(tabName) {
-            const sections = { player: document.getElementById('playerSection'), clan: document.getElementById('clanSection'), compare: document.getElementById('compareSection'), leaderboard: document.getElementById('leaderboardSection'), flux: document.getElementById('fluxSection'), achievements: document.getElementById('achievementsSection') };
-            const buttons = { player: document.getElementById('tabPlayer'), clan: document.getElementById('tabClan'), compare: document.getElementById('tabCompare'), leaderboard: document.getElementById('tabLeaderboard') };
+            const sections = { player: document.getElementById('playerSection'), clan: document.getElementById('clanSection'), compare: document.getElementById('compareSection'), leaderboard: document.getElementById('leaderboardSection'), flux: document.getElementById('fluxSection'), achievements: document.getElementById('achievementsSection'), nerd: document.getElementById('nerdSection') };
+            const buttons = { player: document.getElementById('tabPlayer'), clan: document.getElementById('tabClan'), compare: document.getElementById('tabCompare'), leaderboard: document.getElementById('tabLeaderboard'), nerd: document.getElementById('tabNerd') };
             // Achievement and Flux are standalone pages: they are NOT navbar menus and never remain visible with Player.
             Object.entries(sections).forEach(([key, section]) => {
                 if (!section) return;
@@ -2677,6 +2742,7 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
         document.getElementById('tabClan').addEventListener('click', () => { updateClan(); switchTab('clan'); });
         document.getElementById('tabCompare').addEventListener('click', () => switchTab('compare'));
         document.getElementById('tabLeaderboard').addEventListener('click', () => switchTab('leaderboard'));
+        document.getElementById('tabNerd')?.addEventListener('click', () => switchTab('nerd'));
         const navMenuToggle = document.getElementById('navMenuToggle');
         const navMenuPanel = document.getElementById('navMenuPanel');
         function closeNavMenu(){ if(navMenuPanel) navMenuPanel.hidden = true; if(navMenuToggle) navMenuToggle.setAttribute('aria-expanded','false'); }
@@ -2684,7 +2750,7 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
         document.getElementById('menuPlayer')?.addEventListener('click', () => { switchTab('player'); closeNavMenu(); });
         document.getElementById('menuAchievement')?.addEventListener('click', () => { switchTab('achievements'); closeNavMenu(); });
         document.getElementById('menuFlux')?.addEventListener('click', () => { switchTab('flux'); closeNavMenu(); });
-        ['tabCompare','tabClan','tabLeaderboard'].forEach(id => document.getElementById(id)?.addEventListener('click', closeNavMenu));
+        ['tabCompare','tabClan','tabLeaderboard','tabNerd'].forEach(id => document.getElementById(id)?.addEventListener('click', closeNavMenu));
         document.addEventListener('click', e => { if(navMenuPanel && !navMenuPanel.hidden && !e.target.closest('.header-actions')) closeNavMenu(); });
         switchTab('player');
         document.getElementById('goToAchievementBtn')?.addEventListener('click', () => switchTab('achievements'));
@@ -4220,7 +4286,8 @@ html[data-theme="light"] .data-error{color:#9f1239;background:rgba(244,63,94,0.1
     return '#/'+t;
   }
   function syncHash(push){
-    var h=buildHash(); if(location.hash===h) return;
+    var h=buildHash(); try{ sessionStorage.setItem('testaments-last-route',h); }catch(e){}
+    if(location.hash===h) return;
     try{ history[push?'pushState':'replaceState'](null,'',h); }catch(e){ try{ location.hash=h; }catch(_){} }
   }
   function matchPlayer(v){ v=String(v||'').trim().toLowerCase(); return playerNames.find(function(n){return n.toLowerCase()===v;})||''; }
@@ -4228,7 +4295,7 @@ html[data-theme="light"] .data-error{color:#9f1239;background:rgba(244,63,94,0.1
     var parts=location.hash.replace(/^#\/?/,'').split('/'); var tab=parts[0]||'player'; var arg=dec(parts.slice(1).join('/'));
     applying=true;
     try{
-      var valid=['player','compare','clan','leaderboard','flux','achievements'];
+      var valid=['player','compare','clan','leaderboard','flux','achievements','nerd'];
       if(valid.indexOf(tab)<0) tab='player';
       if(tab==='player'||tab==='achievements'){
         var m=matchPlayer(arg);
@@ -4255,10 +4322,15 @@ html[data-theme="light"] .data-error{color:#9f1239;background:rgba(244,63,94,0.1
   window.__routerInit=function(){
     var navEntry = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || null;
     var isReload = !!(navEntry && navEntry.type === 'reload');
-    if(!isReload && location.hash&&location.hash.length>2) {
+    var savedRoute=''; try{ savedRoute=sessionStorage.getItem('testaments-last-route')||''; }catch(e){}
+    if(location.hash&&location.hash.length>2) {
+      applyRoute();
+    } else if(isReload&&savedRoute.length>2) {
+      // Reload without a hash in the URL: restore the last page this user was on.
+      try{ history.replaceState(null,'',savedRoute); }catch(e){ try{ location.hash=savedRoute; }catch(_){} }
       applyRoute();
     } else {
-      // Fresh visits and browser reloads return to the Player page.
+      // Fresh visits start on the Player page.
       applying=true;
       try { window.switchTab('player'); }
       finally { applying=false; }
@@ -5307,7 +5379,7 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
 </script><script id="clan-quadrant-js">
 (function(){
   'use strict';
-  /* ===== All In One Graph: Peak + Growth + Tenure -> PCA (2D) -> k-means with K = 6 ===== */
+  /* ===== Clan Map: Peak + Growth + Tenure -> PCA (2D) -> k-means with K = 6 ===== */
   var TPL=[];
   ['OG','RK'].forEach(function(t){['GH-PH','GH-PL','GL-PL'].forEach(function(x){TPL.push(t+'-'+x);});});
   var TPLNAME={};
@@ -5385,11 +5457,11 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
       for(var tt=0;tt<6;tt++){if(used&(1<<tt))continue;cur[ci]=tt;go(ci+1,used|(1<<tt),cur,tot+cost[ci][tt]);}
     })(0,0,[],0);
     var order=[];for(c=0;c<k;c++)order.push(c);
-    order.sort(function(a,b){return bestA[a]-bestA[b]}); /* Team 1..6 follow the template order */
+    order.sort(function(a,b){return bestA[a]-bestA[b]}); /* Zone 1..6 follow the template order */
     var keyOf={},groups={},cen={},keys=[];
     order.forEach(function(cl,i){
       var key='T'+(i+1),tpl=TPL[bestA[cl]];
-      keyOf[cl]=key;keys.push(key);LABELS[key]=TPLNAME[tpl];TEAM[key]='Team '+(i+1);COLORS[key]=PAL[i%PAL.length];
+      keyOf[cl]=key;keys.push(key);LABELS[key]=TPLNAME[tpl];TEAM[key]='Zone '+(i+1);COLORS[key]=PAL[i%PAL.length];
       groups[key]=[];cen[key]={x:r.C[cl][0],y:r.C[cl][1]};
     });
     pts.forEach(function(p,i){p.px=P[i][0];p.py=P[i][1];groups[keyOf[r.L[i]]].push(p);});
