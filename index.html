@@ -5307,11 +5307,11 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
 </script><script id="clan-quadrant-js">
 (function(){
   'use strict';
-  /* ===== All In One Graph: Peak + Growth + Tenure -> PCA (2D) -> k-means with K chosen by the elbow method (K <= 16) ===== */
+  /* ===== All In One Graph: Peak + Growth + Tenure -> PCA (2D) -> k-means with K = 6 ===== */
   var TPL=[];
-  ['OG','NW'].forEach(function(t){['GH','GL'].forEach(function(g){['PH','PL'].forEach(function(p){TPL.push([t,g,p].join('-'));});});});
+  ['OG','RK'].forEach(function(t){['GH-PH','GH-PL','GL-PL'].forEach(function(x){TPL.push(t+'-'+x);});});
   var TPLNAME={};
-  TPL.forEach(function(k){var s=k.split('-');TPLNAME[k]=(s[0]==='OG'?'OG':'New')+' \u00b7 '+(s[1]==='GH'?'High':'Low')+' growth \u00b7 '+(s[2]==='PH'?'High':'Low')+' peak';});
+  TPL.forEach(function(k){var s=k.split('-');TPLNAME[k]=(s[0]==='OG'?'OG':'Rookie')+' \u00b7 '+(s[1]==='GH'?'High':'Low')+' growth \u00b7 '+(s[2]==='PH'?'High':'Low')+' peak';});
   var LABELS={},TEAM={},COLORS={};
   var PAL=['#22c55e','#3b82f6','#eab308','#ef4444','#a855f7','#06b6d4','#f97316','#ec4899','#84cc16','#14b8a6','#6366f1','#ca8a04','#fb7185','#0891b2','#7c3aed','#94a3b8'];
   var chart=null,KEYS=[],sel=null,cur=null;
@@ -5369,20 +5369,26 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
     var st=F.map(function(f){var m=pts.reduce(function(a,p){return a+p[f]},0)/n,sd=Math.sqrt(pts.reduce(function(a,p){return a+Math.pow(p[f]-m,2)},0)/n)||1;return{m:m,sd:sd};});
     var Z=pts.map(function(p){return F.map(function(f,i){return(p[f]-st[i].m)/st[i].sd;});});
     var pc=pca(Z,3),P=pc.scores;
-    /* K by elbow: K whose WCSS lies farthest below the straight line from K=1 to K=max (max 16) */
-    var kmax=Math.min(16,n),ws=[],q;
-    for(q=1;q<=kmax;q++)ws.push(bestKM(P,q).w);
-    var el=null,bg=0;
-    ws.forEach(function(w,i){var gap=ws[0]+(ws[kmax-1]-ws[0])*i/(kmax-1)-w;if(gap>bg){bg=gap;el=i+1;}});
-    var k=el||Math.min(3,kmax),r=bestKM(P,k),c,t;
-    /* name each cluster with a unique template (OG/New x growth x peak) using its mean in standardized feature space */
+    /* K is fixed at 6 teams: {OG, Rookie} x {High growth+High peak, High growth+Low peak, Low growth+Low peak} */
+    var k=Math.min(6,n),r=bestKM(P,k),c,t;
     var mean=[];for(c=0;c<k;c++){var mem=[];for(var i2=0;i2<n;i2++)if(r.L[i2]===c)mem.push(Z[i2]);mean.push(F.map(function(_,f){return mem.length?mem.reduce(function(a,z){return a+z[f]},0)/mem.length:0;}));}
-    var anc=F.map(function(_,f){var v=Z.map(function(z){return z[f]}),lo=Math.min.apply(null,v),hi=Math.max.apply(null,v);return(hi+lo)/2;}); /* mid of range per feature */
+    /* anchors per feature [peak, growth, tenure] = [high(p75), low(p25)] of the clan, robust to outliers */
+    var anc=F.map(function(_,f){var v=Z.map(function(z){return z[f]}).sort(function(a,b){return a-b}),q=function(p){var i=(v.length-1)*p,lo=Math.floor(i),hi=Math.ceil(i);return v[lo]+(v[hi]-v[lo])*(i-lo);};return[q(.75),q(.25)];});
+    var cost=[];
+    for(c=0;c<k;c++){cost.push([]);for(t=0;t<6;t++){var s2=TPL[t].split('-');
+      cost[c].push(d2(mean[c],[s2[2]==='PH'?anc[0][0]:anc[0][1],s2[1]==='GH'?anc[1][0]:anc[1][1],s2[0]==='OG'?anc[2][0]:anc[2][1]]));}}
+    /* best one-to-one assignment of clusters to templates (exhaustive, at most 6! options) */
+    var bestA=null,bestC=Infinity;
+    (function go(ci,used,cur,tot){
+      if(tot>=bestC)return;
+      if(ci===k){bestC=tot;bestA=cur.slice();return;}
+      for(var tt=0;tt<6;tt++){if(used&(1<<tt))continue;cur[ci]=tt;go(ci+1,used|(1<<tt),cur,tot+cost[ci][tt]);}
+    })(0,0,[],0);
     var order=[];for(c=0;c<k;c++)order.push(c);
-    order.sort(function(a,b){return mean[b][0]-mean[a][0]}); /* Team 1 = highest average peak */
+    order.sort(function(a,b){return bestA[a]-bestA[b]}); /* Team 1..6 follow the template order */
     var keyOf={},groups={},cen={},keys=[];
     order.forEach(function(cl,i){
-      var key='T'+(i+1),tpl=[mean[cl][2]>=anc[2]?'OG':'NW',mean[cl][1]>=anc[1]?'GH':'GL',mean[cl][0]>=anc[0]?'PH':'PL'].join('-');
+      var key='T'+(i+1),tpl=TPL[bestA[cl]];
       keyOf[cl]=key;keys.push(key);LABELS[key]=TPLNAME[tpl];TEAM[key]='Team '+(i+1);COLORS[key]=PAL[i%PAL.length];
       groups[key]=[];cen[key]={x:r.C[cl][0],y:r.C[cl][1]};
     });
