@@ -1076,8 +1076,8 @@ addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,0)})(
 <!-- SCORE DISTRIBUTION: part of the Clan main container, separated by ONE horizontal divider (no own bubble) -->
 <hr class="my-6 border-slate-700/60" id="clanQuadrantDivider">
 <div id="clanQuadrantSection">
-<div class="mb-4"><h3 class="text-lg font-bold text-white">Correlation</h3><p class="dist-caption" id="clanQuadrantHint" style="margin-top:.25rem">Tap a group or a point to see who is in it.</p></div>
-<div class="relative w-full h-[320px] sm:h-[420px]"><canvas id="clanQuadrantChart"></canvas><div id="clanQuadrantPointInfo" role="status" aria-live="polite" hidden></div></div>
+<div class="mb-4"><h3 class="text-lg font-bold text-white">All In One Graph</h3><p class="dist-caption" id="clanQuadrantHint" style="margin-top:.25rem">Tap a group or a point to see who is in it.</p></div>
+<div class="relative w-full h-[320px] sm:h-[420px]"><canvas id="clanQuadrantChart"></canvas></div>
 <div class="cq-legend" id="clanQuadrantLegend"></div>
 <div id="clanQuadrantDetailSlot"></div>
 </div>
@@ -5307,60 +5307,93 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
 </script><script id="clan-quadrant-js">
 (function(){
   'use strict';
-  var LABELS={HH:'High peak · High growth',HL:'High peak · Low growth',LH:'Low peak · High growth',LL:'Low peak · Low growth'};
-  var COLORS={HH:'#22c55e',HL:'#eab308',LH:'#3b82f6',LL:'#ef4444'};
-  var chart=null;
-  function med(a){var s=a.slice().sort(function(x,y){return x-y}),n=s.length;return n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2;}
-  function kmeans4(pts){
-    var n=pts.length,k=4,i,j;
-    function stat(key){var m=pts.reduce(function(a,p){return a+p[key]},0)/n,sd=Math.sqrt(pts.reduce(function(a,p){return a+Math.pow(p[key]-m,2)},0)/n)||1;return{m:m,sd:sd};}
-    var sx=stat('x'),sy=stat('y');
-    pts.forEach(function(p){p.zx=(p.x-sx.m)/sx.sd;p.zy=(p.y-sy.m)/sy.sd;});
-    var mx=med(pts.map(function(p){return p.zx})),my=med(pts.map(function(p){return p.zy}));
-    /* deterministic init: mean of each median-split quadrant */
-    var cents=[];
-    for(i=0;i<k;i++){
-      var g=pts.filter(function(p){return ((p.zx>=mx?1:0)*2+(p.zy>=my?1:0))===i});
-      cents.push(g.length?{x:g.reduce(function(a,p){return a+p.zx},0)/g.length,y:g.reduce(function(a,p){return a+p.zy},0)/g.length}:null);
-    }
-    cents.forEach(function(c,idx){ if(!c){var far=pts.slice().sort(function(a,b){return (b.zx*b.zx+b.zy*b.zy)-(a.zx*a.zx+a.zy*a.zy)})[idx%n];cents[idx]={x:far.zx,y:far.zy};}});
-    var assign=new Array(n).fill(-1);
-    for(var it=0;it<200;it++){
-      var changed=false;
-      for(i=0;i<n;i++){
-        var best=0,bd=Infinity;
-        for(j=0;j<k;j++){var d=Math.pow(pts[i].zx-cents[j].x,2)+Math.pow(pts[i].zy-cents[j].y,2);if(d<bd){bd=d;best=j;}}
-        if(assign[i]!==best){assign[i]=best;changed=true;}
-      }
-      for(j=0;j<k;j++){
-        var mem=pts.filter(function(_,t){return assign[t]===j});
-        if(mem.length){cents[j]={x:mem.reduce(function(a,p){return a+p.zx},0)/mem.length,y:mem.reduce(function(a,p){return a+p.zy},0)/mem.length};}
-        else{ /* re-seed empty cluster at the point farthest from its centroid */
-          var fi=0,fd=-1;for(i=0;i<n;i++){var c=cents[assign[i]],dd=Math.pow(pts[i].zx-c.x,2)+Math.pow(pts[i].zy-c.y,2);if(dd>fd){fd=dd;fi=i;}}
-          cents[j]={x:pts[fi].zx,y:pts[fi].zy};changed=true;
-        }
-      }
-      if(!changed)break;
-    }
-    /* name clusters: two lowest centroid-x = Low peak, two highest = High peak; higher y = High growth */
-    var order=[0,1,2,3].sort(function(a,b){return cents[a].x-cents[b].x});
-    var names={};
-    [[order[0],order[1],'L'],[order[2],order[3],'H']].forEach(function(pr){
-      var a=pr[0],b=pr[1],hi=cents[a].y>=cents[b].y?a:b,lo=hi===a?b:a;
-      names[hi]=pr[2]+'H';names[lo]=pr[2]+'L';
-    });
-    var out={HH:[],HL:[],LH:[],LL:[]};
-    pts.forEach(function(p,t){out[names[assign[t]]].push(p);});
-    var cen={};for(j=0;j<k;j++)cen[names[j]]={x:cents[j].x*sx.sd+sx.m,y:cents[j].y*sy.sd+sy.m};
-    return{groups:out,centroids:cen};
-  }
-  window.__clanKMeans4=kmeans4;
+  /* ===== All In One Graph: Peak + Growth + Tenure -> PCA (2D) -> k-means with K chosen by the elbow method (K <= 16) ===== */
+  var TPL=[];
+  ['OG','NW'].forEach(function(t){['GH','GL'].forEach(function(g){['PH','PL'].forEach(function(p){TPL.push([t,g,p].join('-'));});});});
+  var TPLNAME={};
+  TPL.forEach(function(k){var s=k.split('-');TPLNAME[k]=(s[0]==='OG'?'OG':'New')+' \u00b7 '+(s[1]==='GH'?'High':'Low')+' growth \u00b7 '+(s[2]==='PH'?'High':'Low')+' peak';});
+  var LABELS={},TEAM={},COLORS={};
+  var PAL=['#22c55e','#3b82f6','#eab308','#ef4444','#a855f7','#06b6d4','#f97316','#ec4899','#84cc16','#14b8a6','#6366f1','#ca8a04','#fb7185','#0891b2','#7c3aed','#94a3b8'];
+  var chart=null,KEYS=[],sel=null,cur=null;
+  function fmt(v){return Number(v).toLocaleString('en-US',{maximumFractionDigits:1});}
+  function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+  function d2(a,b){var s=0;for(var i=0;i<a.length;i++){var x=a[i]-b[i];s+=x*x;}return s;}
   function isLight(){return document.documentElement.getAttribute('data-theme')==='light';}
-  var KEYS=['HH','HL','LH','LL'],sel=null,cur=null;
+  /* PCA: standardize -> covariance -> Jacobi eigen-decomposition (same approach as the reference file) */
+  function jacobi(S){
+    var n=S.length,A=S.map(function(r){return r.slice()}),V=S.map(function(_,i){return S.map(function(_,j){return i===j?1:0})}),i,j,k;
+    for(var it=0;it<80;it++){
+      var p=0,q=1,mx=0;
+      for(i=0;i<n;i++)for(j=i+1;j<n;j++)if(Math.abs(A[i][j])>mx){mx=Math.abs(A[i][j]);p=i;q=j;}
+      if(mx<1e-12)break;
+      var th=.5*Math.atan2(2*A[p][q],A[q][q]-A[p][p]),c=Math.cos(th),s=Math.sin(th);
+      for(k=0;k<n;k++){var a=A[k][p],b=A[k][q];A[k][p]=c*a-s*b;A[k][q]=s*a+c*b;}
+      for(k=0;k<n;k++){var a2=A[p][k],b2=A[q][k];A[p][k]=c*a2-s*b2;A[q][k]=s*a2+c*b2;}
+      for(k=0;k<n;k++){var a3=V[k][p],b3=V[k][q];V[k][p]=c*a3-s*b3;V[k][q]=s*a3+c*b3;}
+    }
+    return A.map(function(_,i){return{val:A[i][i],vec:V.map(function(r){return r[i]})};});
+  }
+  function pca(Z,m){
+    var n=Z.length,S=[],i,j;
+    for(i=0;i<m;i++){S.push([]);for(j=0;j<m;j++)S[i].push(Z.reduce(function(a,z){return a+z[i]*z[j]},0)/n);}
+    var E=jacobi(S).sort(function(a,b){return b.val-a.val}),tr=E.reduce(function(a,e){return a+Math.max(e.val,0)},0)||1;
+    E.forEach(function(e){var sg=e.vec.reduce(function(a,v){return a+v},0)<0?-1:1;e.vec=e.vec.map(function(v){return v*sg});});
+    return{scores:Z.map(function(z){return[0,1].map(function(c){return z.reduce(function(a,v,t){return a+v*E[c].vec[t]},0)})}),ev:[E[0].val/tr,E[1].val/tr]};
+  }
+  /* k-means (k-means++ start, Lloyd iterations, best of 12 deterministic restarts) */
+  function runKM(Z,k,rand){
+    var n=Z.length,C=[Z[Math.floor(rand()*n)].slice()],i,j;
+    while(C.length<k){
+      var D=Z.map(function(z){return Math.min.apply(null,C.map(function(c){return d2(z,c)}));}),sum=D.reduce(function(a,b){return a+b},0),r=rand()*sum,pick=n-1;
+      if(sum<=0){C.push(Z[Math.floor(rand()*n)].slice());continue;}
+      for(i=0;i<n;i++){r-=D[i];if(r<=0){pick=i;break;}}
+      C.push(Z[pick].slice());
+    }
+    var L=new Array(n).fill(-1);
+    for(var it=0;it<200;it++){
+      var ch=false;
+      for(i=0;i<n;i++){var b=0,bd=Infinity;for(j=0;j<k;j++){var d=d2(Z[i],C[j]);if(d<bd){bd=d;b=j;}}if(L[i]!==b){L[i]=b;ch=true;}}
+      for(j=0;j<k;j++){
+        var m=[0,0],c=0;for(i=0;i<n;i++)if(L[i]===j){m[0]+=Z[i][0];m[1]+=Z[i][1];c++;}
+        if(c)C[j]=[m[0]/c,m[1]/c];
+        else{var fi=0,fd=-1;for(i=0;i<n;i++){var dd=d2(Z[i],C[L[i]]);if(dd>fd){fd=dd;fi=i;}}C[j]=Z[fi].slice();L[fi]=j;ch=true;}
+      }
+      if(!ch)break;
+    }
+    var w=0;for(i=0;i<n;i++)w+=d2(Z[i],C[L[i]]);
+    return{L:L,C:C,w:w};
+  }
+  function bestKM(Z,k){var best=null,rand=rng(1234+k);for(var r=0;r<12;r++){var o=runKM(Z,k,rand);if(!best||o.w<best.w)best=o;}return best;}
+  function clusterAuto(pts){
+    var n=pts.length,F=['peak','growth','tenure'],j;
+    var st=F.map(function(f){var m=pts.reduce(function(a,p){return a+p[f]},0)/n,sd=Math.sqrt(pts.reduce(function(a,p){return a+Math.pow(p[f]-m,2)},0)/n)||1;return{m:m,sd:sd};});
+    var Z=pts.map(function(p){return F.map(function(f,i){return(p[f]-st[i].m)/st[i].sd;});});
+    var pc=pca(Z,3),P=pc.scores;
+    /* K by elbow: K whose WCSS lies farthest below the straight line from K=1 to K=max (max 16) */
+    var kmax=Math.min(16,n),ws=[],q;
+    for(q=1;q<=kmax;q++)ws.push(bestKM(P,q).w);
+    var el=null,bg=0;
+    ws.forEach(function(w,i){var gap=ws[0]+(ws[kmax-1]-ws[0])*i/(kmax-1)-w;if(gap>bg){bg=gap;el=i+1;}});
+    var k=el||Math.min(3,kmax),r=bestKM(P,k),c,t;
+    /* name each cluster with a unique template (OG/New x growth x peak) using its mean in standardized feature space */
+    var mean=[];for(c=0;c<k;c++){var mem=[];for(var i2=0;i2<n;i2++)if(r.L[i2]===c)mem.push(Z[i2]);mean.push(F.map(function(_,f){return mem.length?mem.reduce(function(a,z){return a+z[f]},0)/mem.length:0;}));}
+    var anc=F.map(function(_,f){var v=Z.map(function(z){return z[f]}),lo=Math.min.apply(null,v),hi=Math.max.apply(null,v);return(hi+lo)/2;}); /* mid of range per feature */
+    var order=[];for(c=0;c<k;c++)order.push(c);
+    order.sort(function(a,b){return mean[b][0]-mean[a][0]}); /* Team 1 = highest average peak */
+    var keyOf={},groups={},cen={},keys=[];
+    order.forEach(function(cl,i){
+      var key='T'+(i+1),tpl=[mean[cl][2]>=anc[2]?'OG':'NW',mean[cl][1]>=anc[1]?'GH':'GL',mean[cl][0]>=anc[0]?'PH':'PL'].join('-');
+      keyOf[cl]=key;keys.push(key);LABELS[key]=TPLNAME[tpl];TEAM[key]='Team '+(i+1);COLORS[key]=PAL[i%PAL.length];
+      groups[key]=[];cen[key]={x:r.C[cl][0],y:r.C[cl][1]};
+    });
+    pts.forEach(function(p,i){p.px=P[i][0];p.py=P[i][1];groups[keyOf[r.L[i]]].push(p);});
+    return{groups:groups,centroids:cen,keys:keys,k:k,ev:pc.ev};
+  }
+  window.__clanAIO=clusterAuto;
   function paint(){
     if(!chart)return;
     chart.data.datasets.forEach(function(d,i){
-      var k=KEYS[i%4],on=!sel||sel===k;
+      var k=KEYS[i%KEYS.length],on=!sel||sel===k;
       d.backgroundColor=d._centroid?'transparent':(on?COLORS[k]:COLORS[k]+'30');
       d.borderColor=on?COLORS[k]:COLORS[k]+'30';
       d.pointRadius=d._centroid?(on?11:8):(sel===k?7:5);
@@ -5370,45 +5403,37 @@ html[data-theme="light"] .leaderboard-sort.is-active{color:var(--c-slate-900)}
     if(lg){lg.classList.toggle('has-sel',!!sel);lg.querySelectorAll('.cq-row').forEach(function(r){r.setAttribute('aria-expanded',String(r.dataset.k===sel));});}
     var slot=document.getElementById('clanQuadrantDetailSlot'); if(!slot)return; slot.innerHTML='';
     if(!sel||!cur)return;
-    var g=cur.groups[sel].slice().sort(function(a,b){return b.x-a.x}),d=document.createElement('div');
+    var g=cur.groups[sel].slice().sort(function(a,b){return b.peak-a.peak}),d=document.createElement('div');
     d.className='dist-detail';d.style.setProperty('--pc',COLORS[sel]);
-    var t=document.createElement('div');t.className='dist-detail-title';t.textContent=LABELS[sel]+' · '+g.length+(g.length===1?' player':' players');d.appendChild(t);
-    if(!g.length)d.appendChild(document.createTextNode('No players found'));
+    var t=document.createElement('div');t.className='dist-detail-title';t.textContent=LABELS[sel]+' \u00b7 '+g.length+(g.length===1?' player':' players');d.appendChild(t);
     g.forEach(function(p){var c=document.createElement('span');c.className='dist-chip';c.textContent=p.n;d.appendChild(c);});
     slot.appendChild(d);
   }
-  function showPoint(r,di,idx){
-    var el=document.getElementById('clanQuadrantPointInfo'); if(!el)return;
-    if(!r||!r.n||!chart){el.hidden=true;return;}
-    var f=function(v){return Number(v).toLocaleString('en-US',{maximumFractionDigits:1});};
-    el.textContent=r.n+' \u2022 peak '+Math.round(r.x).toLocaleString('en-US')+' \u2022 growth '+f(r.y);
-    el.hidden=false;
-    var pt=chart.getDatasetMeta(di).data[idx]; if(!pt)return;
-    var W=chart.width,w=el.offsetWidth,h=el.offsetHeight;
-    var left=Math.min(Math.max(pt.x-w/2,4),Math.max(4,W-w-4));
-    var top=pt.y-h-12; if(top<4)top=pt.y+14;
-    el.style.left=left+'px'; el.style.top=top+'px';
-  }
   function pick(k){sel=(sel===k)?null:k;paint();}
+  function tenureDays(nm,m){
+    try{var s=getPlayerSeries(nm).dates;if(s&&s.length){var d=(parseDateDMY(s[s.length-1])-parseDateDMY(s[0]))/864e5;if(Number.isFinite(d))return Math.max(0,d);}}catch(e){}
+    return (Number(m.totalLme)||0)*7;
+  }
   function render(){
     var cv=document.getElementById('clanQuadrantChart'),lg=document.getElementById('clanQuadrantLegend');
     if(!cv||!lg||typeof Chart==='undefined'||typeof playerNames==='undefined'||typeof getComparisonMetrics!=='function')return;
     var pts=[];
     playerNames.forEach(function(nm){
       try{ if(!hasPlayerHistory(nm))return; var m=getComparisonMetrics(nm);
-        if(m&&Number.isFinite(m.peak)&&Number.isFinite(m.avgGrowth))pts.push({n:nm,x:m.peak,y:m.avgGrowth}); }catch(e){}
+        if(m&&Number.isFinite(m.peak)&&Number.isFinite(m.avgGrowth)&&true)pts.push({n:nm,peak:m.peak,growth:m.avgGrowth,tenure:tenureDays(nm,m)}); }catch(e){}
     });
     if(chart){chart.destroy();chart=null;}
     if(pts.length<4){lg.innerHTML='';cur=null;sel=null;var sl=document.getElementById('clanQuadrantDetailSlot');if(sl)sl.innerHTML='';return;}
-    cur=kmeans4(pts);var res=cur,light=isLight(),tick=light?'#475569':'#8a99af',grid=light?'rgba(148,163,184,.35)':'rgba(51,65,85,.4)';
-    var ds=KEYS.map(function(k){return{label:LABELS[k],data:res.groups[k].map(function(p){return{x:p.x,y:p.y,n:p.n}}),pointHitRadius:12};});
-    KEYS.forEach(function(k){ds.push({label:k+' centroid',data:[res.centroids[k]],pointStyle:'crossRot',borderWidth:2,pointHitRadius:12,_centroid:true});});
+    cur=clusterAuto(pts);KEYS=cur.keys;if(sel&&KEYS.indexOf(sel)<0)sel=null;
+    var res=cur,light=isLight(),tick=light?'#475569':'#8a99af',grid=light?'rgba(148,163,184,.35)':'rgba(51,65,85,.4)';
+    var ds=KEYS.map(function(k){return{label:TEAM[k],data:res.groups[k].map(function(p){return{x:p.px,y:p.py,n:p.n,peak:p.peak,growth:p.growth,tenure:p.tenure}}),pointHitRadius:12};});
+    KEYS.forEach(function(k){ds.push({label:TEAM[k]+' centroid',data:[res.centroids[k]],pointStyle:'crossRot',borderWidth:2,pointHitRadius:12,_centroid:true});});
     chart=new Chart(cv.getContext('2d'),{type:'scatter',data:{datasets:ds},options:{responsive:true,maintainAspectRatio:false,
-      onClick:function(ev,els){ if(els&&els.length){var e0=els[0],raw=chart.data.datasets[e0.datasetIndex].data[e0.index];showPoint(raw&&raw.n?raw:null,e0.datasetIndex,e0.index);pick(KEYS[e0.datasetIndex%4]);} else {showPoint(null);if(sel){sel=null;paint();}} },
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){var r=c.raw;return r&&r.n?' '+r.n+' · Peak '+fmt(r.x)+' · Growth '+fmt(r.y):' '+c.dataset.label.replace(' centroid',' · centroid');}}}},
-      scales:{x:{title:{display:true,text:'Peak',color:tick},ticks:{color:tick},grid:{color:grid}},y:{title:{display:true,text:'Growth',color:tick},ticks:{color:tick},grid:{color:grid}}}}});
-    lg.innerHTML=KEYS.map(function(k){return '<button type="button" class="cq-row" data-k="'+k+'" style="--pc:'+COLORS[k]+'" aria-expanded="false"><i></i>'+LABELS[k]+'<b>'+res.groups[k].length+'</b></button>';}).join('');
-    lg.querySelectorAll('.cq-row').forEach(function(r){r.addEventListener('click',function(){showPoint(null);pick(r.dataset.k);});});
+      onClick:function(ev,els){ if(els&&els.length){var e0=els[0];pick(KEYS[e0.datasetIndex%KEYS.length]);} else {if(sel){sel=null;paint();}} },
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){var r=c.raw;return r&&r.n?[' '+r.n,' Peak '+fmt(r.peak)+' \u00b7 Growth '+fmt(r.growth),' Tenure '+Math.round(r.tenure)+' d']:' '+c.dataset.label.replace(' centroid',' \u00b7 centroid');}}}},
+      scales:{x:{title:{display:true,text:'PC1 ('+Math.round(res.ev[0]*100)+'%)',color:tick},ticks:{color:tick},grid:{color:grid}},y:{title:{display:true,text:'PC2 ('+Math.round(res.ev[1]*100)+'%)',color:tick},ticks:{color:tick},grid:{color:grid}}}}});
+    lg.innerHTML=KEYS.map(function(k){return '<button type="button" class="cq-row" data-k="'+k+'" style="--pc:'+COLORS[k]+'" aria-expanded="false"><i></i>'+TEAM[k]+'<b>'+res.groups[k].length+'</b></button>';}).join('');
+    lg.querySelectorAll('.cq-row').forEach(function(r){r.addEventListener('click',function(){pick(r.dataset.k);});});
     paint();
   }
   var orig=window.updateClan;
